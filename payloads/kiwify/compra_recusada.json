@@ -1,0 +1,93 @@
+    {
+        "order_id": "2c852693-8def-4444-87da-2230795c3144",
+        "order_ref": "kINEjyj",
+        "order_status": "refused",
+        "product_type": "membership",
+        "payment_method": "credit_card",
+        "store_id": "9pV6uc466l2zH90",
+        "payment_merchant_id": 34232383,
+        "installments": 1,
+        "card_type": "mastercard",
+        "card_last4digits": "8547",
+        "card_rejection_reason": "possible_fraud_ip",
+        "boleto_URL": null,
+        "boleto_barcode": null,
+        "boleto_expiry_date": null,
+        "pix_code": null,
+        "pix_expiration": null,
+        "sale_type": "producer",
+        "created_at": "2025-02-25 19:07",
+        "updated_at": "2025-02-25 19:07",
+        "approved_date": null,
+        "refunded_at": null,
+        "webhook_event_type": "order_rejected",
+        "Product": {
+          "product_id": "d7aea233-987c-48fc-82a9-b918a7d63382",
+          "product_name": "Example product"
+        },
+        "Customer": {
+          "full_name": "John Doe",
+          "first_name": "John",
+          "email": "johndoe@example.com",
+          "mobile": "+76307563184",
+          "CPF": "12927315341",
+          "ip": "8afd:240c:fd:c0e2:36a:63f7:54ed:451c",
+          "instagram": "@kiwify",
+          "street": "Rua 1001",
+          "number": "315",
+          "complement": "SL 05",
+          "neighborhood": "Centro",
+          "city": "Balneário Camboriú",
+          "state": "SC",
+          "zipcode": "88330-756"
+        },
+        "Commissions": {
+          "charge_amount": 1306,
+          "product_base_price": 1306,
+          "product_base_price_currency": "BRL",
+          "kiwify_fee": 144,
+          "kiwify_fee_currency": "BRL",
+          "settlement_amount": 1306,
+          "settlement_amount_currency": "BRL",
+          "sale_tax_rate": 0,
+          "sale_tax_amount": 0,
+          "commissioned_stores": [
+            {
+              "id": "6d4799df-3c9b-4222-98b6-8906b4707160",
+              "type": "producer",
+              "custom_name": "Example store",
+              "email": "example@store.domain",
+              "value": "1162"
+            },
+            {
+              "id": "c879cd39-8058-41ed-bf50-9f223c0ef8ff",
+              "type": "coproducer",
+              "custom_name": "Example coproducer",
+              "email": "example@coproducer.domain",
+              "value": "1162"
+            },
+            {
+              "id": "f933b9b5-02c8-4d86-a307-49fa8fa26539",
+              "type": "affiliate",
+              "affiliate_id": "SSVCUaa",
+              "custom_name": "Example affiliate",
+              "email": "example@affiliate.domain",
+              "value": "1162"
+            }
+          ],
+          "currency": "BRL",
+          "my_commission": 1162,
+          "funds_status": null,
+          "estimated_deposit_date": null,
+          "deposit_date": null
+        },
+        "TrackingParameters": {
+          "src": null,
+          "sck": null,
+          "utm_source": null,
+          "utm_medium": null,
+          "utm_campaign": null,
+          "utm_content": null,
+          "utm_term": null
+        }
+      }

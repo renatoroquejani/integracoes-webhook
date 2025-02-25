@@ -1,0 +1,55 @@
+
+ {
+      "event": "SALE_REFUNDED",
+      "event_description": "Reembolso",
+      "checkout_id": "Q8J1N6K3",
+      "sale_id": "D2RP8RQ7",
+      "payment_method": "CREDIT_CARD",
+      "total_price": "R$ 169,80",
+      "type": "ONE_TIME",
+      "status": "REFUNDED",
+      "created_at": "2025-02-25 18:44:47",
+      "customer": {
+        "name": "João da Silva",
+        "document": "23875090127",
+        "email": "exemplo@email.com",
+        "phone_number": "5511987654321"
+      },
+      "payment": {
+        "method": "CREDIT_CARD",
+        "brand": "visa",
+        "installments": 1,
+        "finished_at": "2025-02-25 18:45:02"
+      },
+      "products": [
+        {
+          "id": "970ad27e-9190-4bf6-b8be-3dc27cbe9359",
+          "name": "Mercado de Ações no Brasil",
+          "offer_id": "32c8415e-ac8d-4be4-9229-eb714ef5e630",
+          "offer_name": "Mercado de Ações no Brasil",
+          "description": "Conheça os principais conceitos de renda variável e o funcionamento dos mercados",
+          "price": "R$ 119,90",
+          "photo": "https://s3.amazonaws.com/production.kirvano.com/products/3f0a1e60-abde-40a4-afdb-6713056869b3/cover-1740519887018.jpg",
+          "is_order_bump": false
+        },
+        {
+          "id": "20bc03c0-5e8a-4c0a-bcc3-632a68013b29",
+          "name": "Excel para Investidores",
+          "offer_id": "518f7f46-3baa-47ea-b2b2-9b61880a809e",
+          "offer_name": "Excel para Investidores",
+          "description": "O melhor curso para quem quer começar a investir e ainda aprender a gerenciar sua carteira.",
+          "price": "R$ 49,90",
+          "photo": "https://s3.amazonaws.com/production.kirvano.com/products/fbae6e50-7243-4414-b861-ad232c1bc4c3/cover-1740519887018.jpg",
+          "is_order_bump": true
+        }
+      ],
+      "utm": {
+        "src": "google",
+        "utm_source": "broadcast",
+        "utm_medium": "email",
+        "utm_campaign": "register",
+        "utm_term": "codes",
+        "utm_content": "link"
+      }
+    }
+  

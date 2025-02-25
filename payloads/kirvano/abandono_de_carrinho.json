@@ -1,0 +1,48 @@
+
+ {
+      "event": "ABANDONED_CART",
+      "event_description": "Carrinho abandonado",
+      "checkout_id": "Q8J1N6K3",
+      "checkout_url": "https://pay.kirvano.com/recovery/e2726107-fcf4-496c-b4cc-5b94acb93e18",
+      "total_price": "R$ 169,80",
+      "type": "ONE_TIME",
+      "status": "ABANDONED_CART",
+      "created_at": "2025-02-25 18:45:39",
+      "customer": {
+        "name": "João da Silva",
+        "document": "23875090127",
+        "email": "exemplo@email.com",
+        "phone_number": "5511987654321"
+      },
+      "products": [
+        {
+          "id": "cc7eb4c7-1c04-417c-a502-1710e98041ba",
+          "name": "Mercado de Ações no Brasil",
+          "offer_id": "d8df319e-4b8e-4c68-8fb8-1bd5d121b15f",
+          "offer_name": "Mercado de Ações no Brasil",
+          "description": "Conheça os principais conceitos de renda variável e o funcionamento dos mercados",
+          "price": "R$ 119,90",
+          "photo": "https://s3.amazonaws.com/production.kirvano.com/products/61295834-0a6c-4c67-bcb4-85f1e2498b31/cover-1740519939723.jpg",
+          "is_order_bump": false
+        },
+        {
+          "id": "de4cccb4-4a93-4239-90ff-a835c30ebbae",
+          "name": "Excel para Investidores",
+          "offer_id": "a6e4ab07-7ef8-4115-a464-c51a012ee604",
+          "offer_name": "Excel para Investidores",
+          "description": "O melhor curso para quem quer começar a investir e ainda aprender a gerenciar sua carteira.",
+          "price": "R$ 49,90",
+          "photo": "https://s3.amazonaws.com/production.kirvano.com/products/b1435118-0ad2-4229-95b9-286296114271/cover-1740519939723.jpg",
+          "is_order_bump": true
+        }
+      ],
+      "utm": {
+        "src": "google",
+        "utm_source": "broadcast",
+        "utm_medium": "email",
+        "utm_campaign": "register",
+        "utm_term": "codes",
+        "utm_content": "link"
+      }
+    }
+  

@@ -1,0 +1,196 @@
+openapi: 3.0.0
+info:
+  title: API de Webhooks - Kiwify e Hotmart
+  description: API para receber webhooks da Kiwify e Hotmart
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Servidor local
+paths:
+  /webhook/kiwify:
+    post:
+      summary: Webhook da Kiwify
+      description: Endpoint para receber notificações da Kiwify sobre compras, reembolsos e outros eventos
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KiwifyWebhook'
+      responses:
+        '200':
+          description: Webhook processado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KiwifyResponse'
+        '400':
+          description: Erro na requisição
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '405':
+          description: Método não permitido
+  /webhook/hotmart:
+    post:
+      summary: Webhook da Hotmart
+      description: Endpoint para receber notificações da Hotmart sobre compras, reembolsos e outros eventos
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HotmartWebhook'
+      responses:
+        '200':
+          description: Webhook processado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HotmartResponse'
+        '400':
+          description: Erro na requisição
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '405':
+          description: Método não permitido
+
+components:
+  schemas:
+    KiwifyWebhook:
+      type: object
+      required:
+        - query
+        - body
+      properties:
+        params:
+          type: object
+        query:
+          type: object
+          required:
+            - signature
+          properties:
+            signature:
+              type: string
+              description: Assinatura para validação do webhook
+        body:
+          type: object
+          required:
+            - order_id
+            - order_status
+          properties:
+            order_id:
+              type: string
+              description: ID único do pedido
+            order_ref:
+              type: string
+              description: Referência do pedido
+            order_status:
+              type: string
+              enum: [paid, rejected, refunded, abandoned]
+              description: Status do pedido
+            product_type:
+              type: string
+              description: Tipo do produto
+            payment_method:
+              type: string
+              description: Método de pagamento
+            webhook_event_type:
+              type: string
+              enum: [order_approved, order_rejected, refund_requested, cart_abandoned]
+              description: Tipo do evento do webhook
+            Product:
+              type: object
+              properties:
+                product_id:
+                  type: string
+                product_name:
+                  type: string
+            Customer:
+              type: object
+              properties:
+                full_name:
+                  type: string
+                email:
+                  type: string
+            Subscription:
+              type: object
+              properties:
+                id:
+                  type: string
+                status:
+                  type: string
+
+    KiwifyResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [success, error]
+        message:
+          type: string
+        data:
+          type: object
+
+    HotmartWebhook:
+      type: object
+      required:
+        - product
+        - purchase
+      properties:
+        product:
+          type: object
+          required:
+            - ucode
+          properties:
+            has_co_production:
+              type: boolean
+            name:
+              type: string
+            id:
+              type: integer
+            ucode:
+              type: string
+        purchase:
+          type: object
+          required:
+            - transaction
+            - status
+          properties:
+            transaction:
+              type: string
+              description: Código da transação
+            status:
+              type: string
+              enum: [APPROVED, DISPUTE, EXPIRED]
+              description: Status da compra
+        buyer:
+          type: object
+          properties:
+            name:
+              type: string
+            email:
+              type: string
+
+    HotmartResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [success, error]
+        message:
+          type: string
+        data:
+          type: object
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [error]
+        message:
+          type: string

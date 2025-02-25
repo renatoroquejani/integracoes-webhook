@@ -1,0 +1,20 @@
+{
+        "offer": {
+          "code": "n82b9jqz"
+        },
+        "product": {
+          "name": "Produto test postback2 com ç e á",
+          "id": 123456
+        },
+        "checkout_country": {
+          "iso": "BR",
+          "name": "Brasil"
+        },
+        "buyer_ip": "127.0.0.1",
+        "affiliate": false,
+        "buyer": {
+          "phone": "999999999",
+          "name": "Postback2 teste",
+          "email": "teste@hotmart.com.br"
+        }
+      }

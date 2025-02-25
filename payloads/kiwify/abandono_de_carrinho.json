@@ -1,0 +1,16 @@
+ {
+      "checkout_link": "xLQIASv",
+      "country": "br",
+      "cnpj": "27823991316052",
+      "created_at": "2025-02-22T19:17:49.026Z",
+      "email": "johndoe@example.com",
+      "id": "y4ml7pch72nuf1h9pb",
+      "name": "John Doe",
+      "offer_name": "Example offer",
+      "phone": "(95) 4265-0650",
+      "product_id": "5f7e4a40-fed6-415a-93e0-cbcd8da21789",
+      "product_name": "Example product",
+      "status": "abandoned",
+      "store_id": "3Tg1NRTwfimOKjC",
+      "subscription_plan": null
+    }

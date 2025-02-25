@@ -1,0 +1,55 @@
+
+  {
+      "event": "SALE_REFUSED",
+      "event_description": "Compra recusada",
+      "checkout_id": "Q8J1N6K3",
+      "checkout_url": "https://pay.kirvano.com/recovery/55c0f5f8-0be8-4c08-a817-20371a557ce7",
+      "sale_id": "D2RP8RQ7",
+      "payment_method": "CREDIT_CARD",
+      "total_price": "R$ 169,80",
+      "type": "ONE_TIME",
+      "status": "REFUSED",
+      "created_at": "2025-02-25 18:43:39",
+      "customer": {
+        "name": "João da Silva",
+        "document": "23875090127",
+        "email": "exemplo@email.com",
+        "phone_number": "5511987654321"
+      },
+      "payment": {
+        "method": "CREDIT_CARD",
+        "brand": "visa",
+        "installments": 1
+      },
+      "products": [
+        {
+          "id": "920d7b2f-3e6c-40ed-b94c-d7c4abb1eff7",
+          "name": "Mercado de Ações no Brasil",
+          "offer_id": "f7a04284-03c7-4af8-b2f7-a861843d40cb",
+          "offer_name": "Mercado de Ações no Brasil",
+          "description": "Conheça os principais conceitos de renda variável e o funcionamento dos mercados",
+          "price": "R$ 119,90",
+          "photo": "https://s3.amazonaws.com/production.kirvano.com/products/b740802c-4569-4c43-99b0-f5803f589023/cover-1740519819353.jpg",
+          "is_order_bump": false
+        },
+        {
+          "id": "e4ef5b3d-3df4-451a-8482-4e2ff013ed6f",
+          "name": "Excel para Investidores",
+          "offer_id": "61cd3e22-5c12-41ec-b5dd-260506269aa2",
+          "offer_name": "Excel para Investidores",
+          "description": "O melhor curso para quem quer começar a investir e ainda aprender a gerenciar sua carteira.",
+          "price": "R$ 49,90",
+          "photo": "https://s3.amazonaws.com/production.kirvano.com/products/dc755559-1cd0-463f-a9a8-b79493b868aa/cover-1740519819353.jpg",
+          "is_order_bump": true
+        }
+      ],
+      "utm": {
+        "src": "google",
+        "utm_source": "broadcast",
+        "utm_medium": "email",
+        "utm_campaign": "register",
+        "utm_term": "codes",
+        "utm_content": "link"
+      }
+    }
+  

@@ -1,0 +1,497 @@
+basePath: /
+definitions:
+  models.HotmartResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  models.HotmartWebhook:
+    properties:
+      affiliate:
+        description: Presente apenas em abandono de carrinho
+        type: boolean
+      affiliates:
+        description: Opcional
+        items:
+          properties:
+            affiliate_code:
+              type: string
+            name:
+              type: string
+          type: object
+        type: array
+      buyer:
+        properties:
+          address:
+            properties:
+              country:
+                type: string
+              country_iso:
+                type: string
+            type: object
+          checkout_phone:
+            description: Renomeado para phone em abandono de carrinho
+            type: string
+          email:
+            type: string
+          name:
+            type: string
+          phone:
+            description: Usado em abandono de carrinho
+            type: string
+        type: object
+      buyer_ip:
+        description: Presente apenas em abandono de carrinho
+        type: string
+      commissions:
+        description: Opcional em abandono de carrinho
+        items:
+          properties:
+            currency_value:
+              type: string
+            source:
+              type: string
+            value:
+              type: number
+          type: object
+        type: array
+      creation_date:
+        type: integer
+      event:
+        type: string
+      hottok:
+        type: string
+      id:
+        type: string
+      offer:
+        properties:
+          code:
+            type: string
+        type: object
+      producer:
+        properties:
+          name:
+            type: string
+        type: object
+      product:
+        properties:
+          has_co_production:
+            type: boolean
+          id:
+            type: integer
+          name:
+            type: string
+          ucode:
+            description: Opcional em alguns eventos
+            type: string
+        type: object
+      purchase:
+        properties:
+          approved_date:
+            type: integer
+          checkout_country:
+            properties:
+              iso:
+                type: string
+              name:
+                type: string
+            type: object
+          full_price:
+            properties:
+              currency_value:
+                type: string
+              value:
+                type: number
+            type: object
+          offer:
+            properties:
+              code:
+                type: string
+            type: object
+          order_bump:
+            properties:
+              is_order_bump:
+                type: boolean
+              parent_purchase_transaction:
+                type: string
+            type: object
+          order_date:
+            type: integer
+          original_offer_price:
+            properties:
+              currency_value:
+                type: string
+              value:
+                type: number
+            type: object
+          payment:
+            properties:
+              installments_number:
+                type: integer
+              type:
+                type: string
+            type: object
+          price:
+            properties:
+              currency_value:
+                type: string
+              value:
+                type: number
+            type: object
+          sckPaymentLink:
+            type: string
+          status:
+            description: APPROVED, DISPUTE, EXPIRED, etc
+            type: string
+          transaction:
+            type: string
+        type: object
+      subscription:
+        properties:
+          plan:
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+            type: object
+          status:
+            type: string
+          subscriber:
+            properties:
+              code:
+                type: string
+            type: object
+        type: object
+      version:
+        type: string
+    type: object
+  models.KirvanoResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  models.KirvanoWebhookBody:
+    properties:
+      checkout_id:
+        type: string
+      created_at:
+        type: string
+      customer:
+        properties:
+          document:
+            type: string
+          email:
+            type: string
+          name:
+            type: string
+          phone_number:
+            type: string
+        type: object
+      event:
+        type: string
+      event_description:
+        type: string
+      payment:
+        properties:
+          brand:
+            type: string
+          finished_at:
+            type: string
+          installments:
+            type: integer
+          method:
+            type: string
+        type: object
+      payment_method:
+        type: string
+      products:
+        items:
+          properties:
+            description:
+              type: string
+            id:
+              type: string
+            is_order_bump:
+              type: boolean
+            name:
+              type: string
+            offer_id:
+              type: string
+            offer_name:
+              type: string
+            photo:
+              type: string
+            price:
+              type: string
+          type: object
+        type: array
+      sale_id:
+        description: Atualizado para sale_id
+        type: string
+      status:
+        type: string
+      total_price:
+        type: string
+      type:
+        type: string
+      utm:
+        properties:
+          src:
+            type: string
+          utm_campaign:
+            type: string
+          utm_content:
+            type: string
+          utm_medium:
+            type: string
+          utm_source:
+            type: string
+          utm_term:
+            type: string
+        type: object
+    type: object
+  models.KiwifyResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  models.KiwifyWebhook:
+    properties:
+      access_url:
+        type: string
+      commissions:
+        properties:
+          commissioned_stores:
+            items:
+              properties:
+                custom_name:
+                  type: string
+                type:
+                  type: string
+                value:
+                  type: string
+              type: object
+            type: array
+          currency:
+            type: string
+        type: object
+      created_at:
+        type: string
+      customer:
+        properties:
+          email:
+            type: string
+          name:
+            type: string
+          phone_number:
+            type: string
+        type: object
+      order_id:
+        type: string
+      order_ref:
+        type: string
+      order_status:
+        type: string
+      payment:
+        properties:
+          currency:
+            type: string
+          installments:
+            type: integer
+          method:
+            type: string
+          processor_id:
+            type: string
+          safe_status:
+            type: string
+          status:
+            type: string
+          value:
+            type: string
+        type: object
+      producer:
+        properties:
+          email:
+            type: string
+          name:
+            type: string
+        type: object
+      product:
+        properties:
+          id:
+            type: string
+          name:
+            type: string
+          order_bump_id:
+            type: string
+          price:
+            type: string
+          quantity:
+            type: integer
+          regular:
+            type: boolean
+        type: object
+      store:
+        properties:
+          id:
+            type: string
+          name:
+            type: string
+        type: object
+      subscription:
+        properties:
+          id:
+            type: string
+          plan:
+            properties:
+              frequency:
+                type: string
+              name:
+                type: string
+              recurrences:
+                type: integer
+            type: object
+          status:
+            type: string
+        type: object
+      subscription_id:
+        type: string
+      tracking_data:
+        properties:
+          campaign:
+            type: string
+          content:
+            type: string
+          identifier:
+            type: string
+          medium:
+            type: string
+          segment_name:
+            type: string
+          source:
+            type: string
+          term:
+            type: string
+          utm_campaign:
+            type: string
+          utm_content:
+            type: string
+          utm_medium:
+            type: string
+          utm_source:
+            type: string
+          utm_term:
+            type: string
+        type: object
+      webhook_event_id:
+        type: string
+      webhook_event_type:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API para receber webhooks da Kiwify, Hotmart e Kirvano
+  title: API de Webhooks - Kiwify, Hotmart e Kirvano
+  version: "1.0"
+paths:
+  /webhook/echo:
+    post:
+      consumes:
+      - application/json
+      description: Retorna o mesmo payload recebido
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Echo webhook
+  /webhook/hotmart:
+    post:
+      consumes:
+      - application/json
+      description: Recebe notificações da Hotmart
+      parameters:
+      - description: Payload do webhook
+        in: body
+        name: webhook
+        required: true
+        schema:
+          $ref: '#/definitions/models.HotmartWebhook'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.HotmartResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.HotmartResponse'
+      summary: Webhook Hotmart
+  /webhook/kirvano:
+    post:
+      consumes:
+      - application/json
+      description: Recebe notificações da Kirvano
+      parameters:
+      - description: Payload do webhook
+        in: body
+        name: webhook
+        required: true
+        schema:
+          $ref: '#/definitions/models.KirvanoWebhookBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.KirvanoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.KirvanoResponse'
+      summary: Webhook Kirvano
+  /webhook/kiwify:
+    post:
+      consumes:
+      - application/json
+      description: Recebe notificações da Kiwify
+      parameters:
+      - description: Assinatura para validação
+        in: query
+        name: signature
+        required: true
+        type: string
+      - description: Payload do webhook
+        in: body
+        name: webhook
+        required: true
+        schema:
+          $ref: '#/definitions/models.KiwifyWebhook'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.KiwifyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.KiwifyResponse'
+      summary: Webhook Kiwify
+swagger: "2.0"

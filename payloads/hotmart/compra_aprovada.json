@@ -1,0 +1,82 @@
+{
+          "product": {
+            "has_co_production": false,
+            "name": "Produto test postback2",
+            "id": 0,
+            "ucode": "fb056612-bcc6-4217-9e6d-2a5d1110ac2f"
+          },
+          "commissions": [
+            {
+              "currency_value": "BRL",
+              "source": "MARKETPLACE",
+              "value": 149.5
+            },
+            {
+              "currency_value": "BRL",
+              "source": "PRODUCER",
+              "value": 1350.5
+            }
+          ],
+          "purchase": {
+            "offer": {
+              "code": "test"
+            },
+            "order_date": 1511783344000,
+            "original_offer_price": {
+              "currency_value": "BRL",
+              "value": 1500
+            },
+            "price": {
+              "currency_value": "BRL",
+              "value": 1500
+            },
+            "checkout_country": {
+              "iso": "BR",
+              "name": "Brasil"
+            },
+            "sckPaymentLink": "sckPaymentLinkTest",
+            "order_bump": {
+              "parent_purchase_transaction": "HP02316330308193",
+              "is_order_bump": true
+            },
+            "payment": {
+              "installments_number": 12,
+              "type": "CREDIT_CARD"
+            },
+            "approved_date": 1511783346000,
+            "full_price": {
+              "currency_value": "BRL",
+              "value": 1500
+            },
+            "transaction": "HP16015479281022",
+            "status": "APPROVED"
+          },
+          "affiliates": [
+            {
+              "affiliate_code": "Q58388177J",
+              "name": "Affiliate name"
+            }
+          ],
+          "producer": {
+            "name": "Producer Test Name"
+          },
+          "subscription": {
+            "subscriber": {
+              "code": "I9OT62C3"
+            },
+            "plan": {
+              "name": "plano de teste",
+              "id": 123
+            },
+            "status": "ACTIVE"
+          },
+          "buyer": {
+            "address": {
+              "country": "Brasil",
+              "country_iso": "BR"
+            },
+            "name": "Teste Comprador",
+            "checkout_phone": "99999999900",
+            "email": "testeComprador271101postman15@example.com"
+          }
+        }
