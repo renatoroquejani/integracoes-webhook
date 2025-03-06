@@ -77,6 +77,108 @@ curl -X POST http://localhost:8080/webhook/kirvano \
   -d @payloads/kirvano/compra_aprovada.json
 ```
 
+## API de Integração com Meta Ads
+
+Esta API permite consultar dados do Meta Ads (Facebook/Instagram) usando um token de acesso. As métricas disponíveis incluem:
+
+- CTR (Click-Through Rate)
+- CAC (Custo de Aquisição por Cliente)
+- Investimento Total
+- Número de Vendas
+
+### Como obter um token de acesso do Meta Ads
+
+Para utilizar esta API, você precisa de um token de acesso válido do Meta Ads. Siga os passos abaixo para obter um token:
+
+1. Acesse o [Meta for Developers](https://developers.facebook.com/) e faça login com sua conta do Facebook
+2. Crie um aplicativo no painel do desenvolvedor (Developer Dashboard)
+3. Adicione o produto "Marketing API" ao seu aplicativo
+4. Gere um token de acesso com as permissões: `ads_read`, `ads_management`, `business_management`
+5. Para uso em produção, você precisará passar pelo processo de revisão do aplicativo
+
+**Nota:** Para fins de teste, você pode usar um token de acesso temporário gerado no [Graph API Explorer](https://developers.facebook.com/tools/explorer/).
+
+### Integração com a API real
+
+Esta API se integra diretamente com a Graph API do Facebook para obter dados reais das suas campanhas publicitárias. A integração utiliza a biblioteca oficial [huandu/facebook](https://github.com/huandu/facebook) para Go.
+
+A API realiza as seguintes operações:
+
+1. Valida o token de acesso fornecido
+2. Recupera as contas de anúncios associadas ao token
+3. Obtém insights e métricas das campanhas ou contas de anúncios
+4. Processa os dados para calcular CTR, CAC e outras métricas
+
+**Importante:** Se a API do Facebook não estiver disponível ou retornar um erro, a API irá automaticamente usar dados simulados como fallback para fins de demonstração.
+
+### Endpoints
+
+#### POST /api/meta-ads
+
+Consulta dados do Meta Ads usando um token fornecido no corpo da requisição.
+
+**Exemplo de requisição:**
+
+```json
+{
+  "token": "seu_token_de_acesso"
+}
+```
+
+**Exemplo de resposta:**
+
+```json
+{
+  "status": "success",
+  "message": "Dados do Meta Ads consultados com sucesso",
+  "data": {
+    "ctr": 3.2,
+    "cac": 12.45,
+    "investimento": 2500.75,
+    "numero_vendas": 120,
+    "campanha_id": "23847239847",
+    "campanha_nome": "Campanha de Teste",
+    "data_inicio": "2025-02-06",
+    "data_fim": "2025-03-06"
+  }
+}
+```
+
+#### GET /api/meta-ads/metricas
+
+Consulta métricas específicas do Meta Ads usando um token fornecido via query parameter.
+
+**Parâmetros:**
+
+- `token` (obrigatório): Token de acesso ao Meta Ads
+- `account_id` (opcional): ID da conta de anúncios
+- `campaign_id` (opcional): ID da campanha
+
+**Exemplo de requisição:**
+
+```
+GET /api/meta-ads/metricas?token=seu_token_de_acesso&campaign_id=123456789
+```
+
+**Exemplo de resposta:**
+
+```json
+{
+  "status": "success",
+  "message": "Métricas do Meta Ads consultadas com sucesso",
+  "data": {
+    "ctr": 4.5,
+    "cac": 9.75,
+    "investimento": 1850.25,
+    "numero_vendas": 95,
+    "campanha_id": "123456789",
+    "campanha_nome": "Campanha Específica",
+    "data_inicio": "2025-02-06",
+    "data_fim": "2025-03-06"
+  }
+}
+```
+
 ## Estrutura do projeto
 
 ```

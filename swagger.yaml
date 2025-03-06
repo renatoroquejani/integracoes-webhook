@@ -1,10 +1,10 @@
 openapi: 3.0.0
 info:
-  title: API de Webhooks - Kiwify e Hotmart
-  description: API para receber webhooks da Kiwify e Hotmart
+  title: API de Webhooks e Integrações
+  description: API para receber webhooks da Kiwify, Hotmart, Kirvano e integração com Meta Ads
   version: 1.0.0
 servers:
-  - url: http://localhost:8080
+  - url: http://localhost:8081
     description: Servidor local
 paths:
   /webhook/kiwify:
@@ -57,6 +57,178 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '405':
           description: Método não permitido
+  /api/meta-ads:
+    post:
+      summary: Meta Ads API
+      description: |
+        Consulta dados do Meta Ads usando um token fornecido no corpo da requisição.
+        Retorna métricas como CTR, CAC, investimento total e número de vendas.
+        Se o token for inválido ou ocorrer um erro na API, retorna dados simulados como fallback.
+      tags:
+        - Meta Ads
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetaAdsRequest'
+            examples:
+              tokenExample:
+                summary: Exemplo de requisição com token
+                value:
+                  token: "EAABsbCS1iHgBO..." # Token de exemplo truncado
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetaAdsResponse'
+              examples:
+                successExample:
+                  summary: Exemplo de resposta com sucesso
+                  value:
+                    success: true
+                    message: "Dados do Meta Ads consultados com sucesso"
+                    data:
+                      ctr: 3.2
+                      cac: 12.45
+                      investimento: 2500.75
+                      numero_vendas: 120
+                      campanha_id: "23847239847"
+                      campanha_nome: "Campanha de Teste"
+                      data_inicio: "2025-02-06"
+                      data_fim: "2025-03-06"
+                fallbackExample:
+                  summary: Exemplo de resposta com dados simulados (fallback)
+                  value:
+                    success: true
+                    message: "Dados simulados do Meta Ads (a API real falhou)"
+                    data:
+                      ctr: 3.2
+                      cac: 12.45
+                      investimento: 2500.75
+                      numero_vendas: 120
+                      campanha_id: "23847239847"
+                      campanha_nome: "Campanha de Teste"
+                      data_inicio: "2025-02-06"
+                      data_fim: "2025-03-06"
+        '400':
+          description: Requisição inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetaAdsResponse'
+              example:
+                success: false
+                message: "Token não fornecido ou formato inválido"
+  /meta-ads/metricas:
+    post:
+      tags:
+        - Meta Ads
+      summary: Obter métricas do Meta Ads
+      description: Obtem métricas como CTR, CAC, investimento total e número de vendas do Meta Ads
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetaAdsRequest'
+      responses:
+        '200':
+          description: Métricas obtidas com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetaAdsResponse'
+        '400':
+          description: Erro na requisição
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetaAdsResponse'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetaAdsResponse'
+  /meta-ads/campanha/{campaign_id}:
+    get:
+      tags:
+        - Meta Ads
+      summary: Obter insights de campanha do Meta Ads
+      description: Obtem insights detalhados de uma campanha específica do Meta Ads
+      parameters:
+        - name: campaign_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID da campanha
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Token de acesso do Meta Ads
+      responses:
+        '200':
+          description: Insights da campanha obtidos com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetaAdsResponse'
+        '400':
+          description: Erro na requisição
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetaAdsResponse'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetaAdsResponse'
+  /meta-ads/conta/{account_id}:
+    get:
+      tags:
+        - Meta Ads
+      summary: Obter insights de conta do Meta Ads
+      description: Obtem insights detalhados de uma conta de anúncios do Meta Ads
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID da conta de anúncios
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Token de acesso do Meta Ads
+      responses:
+        '200':
+          description: Insights da conta obtidos com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetaAdsResponse'
+        '400':
+          description: Erro na requisição
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetaAdsResponse'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetaAdsResponse'
 
 components:
   schemas:
@@ -194,3 +366,67 @@ components:
           enum: [error]
         message:
           type: string
+
+    MetaAdsRequest:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          description: Token de acesso à API do Meta Ads
+          example: "EAABsbCS1iHgBO..."
+
+    MetaAdsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se a operação foi bem-sucedida
+        message:
+          type: string
+          description: Mensagem descritiva sobre o resultado da operação
+        data:
+          $ref: '#/components/schemas/MetaAdsData'
+          description: Dados retornados pela API
+        error:
+          $ref: '#/components/schemas/ErrorInfo'
+          description: Informações detalhadas sobre o erro, se houver
+
+    MetaAdsData:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID da campanha ou conta
+        nome:
+          type: string
+          description: Nome da campanha ou conta
+        ctr:
+          type: number
+          description: Taxa de cliques (Click-Through Rate)
+        cac:
+          type: number
+          description: Custo de aquisição de cliente
+        investimentoTotal:
+          type: number
+          description: Valor total investido na campanha
+        numeroVendas:
+          type: integer
+          description: Número de vendas realizadas
+
+    ErrorInfo:
+      type: object
+      properties:
+        type:
+          type: string
+          description: Tipo do erro
+        code:
+          type: integer
+          description: Código do erro
+        message:
+          type: string
+          description: Mensagem de erro
+        details:
+          type: string
+          description: Detalhes adicionais sobre o erro

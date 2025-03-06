@@ -398,13 +398,117 @@ definitions:
       webhook_event_type:
         type: string
     type: object
-host: localhost:8080
+  models.MetaAdsData:
+    properties:
+      cac:
+        description: Custo de Aquisição por Cliente
+        type: number
+      campanha_id:
+        type: string
+      campanha_nome:
+        type: string
+      ctr:
+        description: Click-Through Rate
+        type: number
+      data_fim:
+        type: string
+      data_inicio:
+        type: string
+      investimento:
+        description: Investimento Total
+        type: number
+      numero_vendas:
+        description: Número de Vendas
+        type: integer
+    type: object
+  models.MetaAdsRequest:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
+  models.MetaAdsResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.MetaAdsData'
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+host: localhost:8081
 info:
   contact: {}
-  description: API para receber webhooks da Kiwify, Hotmart e Kirvano
-  title: API de Webhooks - Kiwify, Hotmart e Kirvano
+  description: API para receber webhooks da Kiwify, Hotmart, Kirvano e integração
+    com Meta Ads
+  title: API de Webhooks e Integrações
   version: "1.0"
 paths:
+  /api/meta-ads:
+    post:
+      consumes:
+      - application/json
+      description: Consulta dados do Meta Ads usando um token fornecido
+      parameters:
+      - description: Token de acesso ao Meta Ads
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.MetaAdsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.MetaAdsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.MetaAdsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.MetaAdsResponse'
+      summary: Meta Ads API
+  /api/meta-ads/metricas:
+    get:
+      consumes:
+      - application/json
+      description: Consulta métricas específicas do Meta Ads usando um token fornecido
+        via query parameter
+      parameters:
+      - description: Token de acesso ao Meta Ads
+        in: query
+        name: token
+        required: true
+        type: string
+      - description: ID da conta de anúncios (opcional)
+        in: query
+        name: account_id
+        type: string
+      - description: ID da campanha (opcional)
+        in: query
+        name: campaign_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.MetaAdsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.MetaAdsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.MetaAdsResponse'
+      summary: Meta Ads Métricas
   /webhook/echo:
     post:
       consumes:
@@ -495,3 +599,6 @@ paths:
             $ref: '#/definitions/models.KiwifyResponse'
       summary: Webhook Kiwify
 swagger: "2.0"
+tags:
+- description: Endpoints para integração com Meta Ads
+  name: Meta Ads

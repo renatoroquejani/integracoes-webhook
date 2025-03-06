@@ -15,6 +15,102 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/meta-ads": {
+            "post": {
+                "description": "Consulta dados do Meta Ads usando um token fornecido",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Meta Ads API",
+                "parameters": [
+                    {
+                        "description": "Token de acesso ao Meta Ads",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.MetaAdsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.MetaAdsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.MetaAdsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.MetaAdsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/meta-ads/metricas": {
+            "get": {
+                "description": "Consulta métricas específicas do Meta Ads usando um token fornecido via query parameter",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Meta Ads Métricas",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Token de acesso ao Meta Ads",
+                        "name": "token",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID da conta de anúncios (opcional)",
+                        "name": "account_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID da campanha (opcional)",
+                        "name": "campaign_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.MetaAdsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.MetaAdsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.MetaAdsResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/webhook/echo": {
             "post": {
                 "description": "Retorna o mesmo payload recebido",
@@ -762,18 +858,82 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "models.MetaAdsData": {
+            "type": "object",
+            "properties": {
+                "cac": {
+                    "description": "Custo de Aquisição por Cliente",
+                    "type": "number"
+                },
+                "campanha_id": {
+                    "type": "string"
+                },
+                "campanha_nome": {
+                    "type": "string"
+                },
+                "ctr": {
+                    "description": "Click-Through Rate",
+                    "type": "number"
+                },
+                "data_fim": {
+                    "type": "string"
+                },
+                "data_inicio": {
+                    "type": "string"
+                },
+                "investimento": {
+                    "description": "Investimento Total",
+                    "type": "number"
+                },
+                "numero_vendas": {
+                    "description": "Número de Vendas",
+                    "type": "integer"
+                }
+            }
+        },
+        "models.MetaAdsRequest": {
+            "type": "object",
+            "required": [
+                "token"
+            ],
+            "properties": {
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.MetaAdsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.MetaAdsData"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
         }
-    }
+    },
+    "tags": [
+        {
+            "description": "Endpoints para integração com Meta Ads",
+            "name": "Meta Ads"
+        }
+    ]
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "localhost:8081",
 	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "API de Webhooks - Kiwify, Hotmart e Kirvano",
-	Description:      "API para receber webhooks da Kiwify, Hotmart e Kirvano",
+	Title:            "API de Webhooks e Integrações",
+	Description:      "API para receber webhooks da Kiwify, Hotmart, Kirvano e integração com Meta Ads",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

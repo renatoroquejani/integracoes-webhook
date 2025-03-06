@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meta Ads API Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 20px;
+        }
+        .card {
+            margin-bottom: 20px;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #response {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .error-details {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4">Meta Ads API Demo</h1>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">POST /meta-ads/metricas</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Consulta métricas gerais do Meta Ads usando um token fornecido no corpo da requisição.</p>
+                        <form id="postForm">
+                            <div class="mb-3">
+                                <label for="token" class="form-label">Token de acesso:</label>
+                                <input type="text" class="form-control" id="token" placeholder="Insira o token de acesso do Meta Ads">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Enviar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">GET /meta-ads/campanha/{campaign_id}</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Obtém insights detalhados de uma campanha específica do Meta Ads.</p>
+                        <form id="getForm">
+                            <div class="mb-3">
+                                <label for="getToken" class="form-label">Token de acesso:</label>
+                                <input type="text" class="form-control" id="getToken" placeholder="Insira o token de acesso do Meta Ads">
+                            </div>
+                            <div class="mb-3">
+                                <label for="campaignId" class="form-label">ID da Campanha:</label>
+                                <input type="text" class="form-control" id="campaignId" placeholder="Insira o ID da campanha">
+                            </div>
+                            <button type="submit" class="btn btn-success">Enviar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">GET /meta-ads/conta/{account_id}</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Obtém insights detalhados de uma conta de anúncios do Meta Ads.</p>
+                        <form id="accountForm">
+                            <div class="mb-3">
+                                <label for="accountToken" class="form-label">Token de acesso:</label>
+                                <input type="text" class="form-control" id="accountToken" placeholder="Insira o token de acesso do Meta Ads">
+                            </div>
+                            <div class="mb-3">
+                                <label for="accountId" class="form-label">ID da Conta:</label>
+                                <input type="text" class="form-control" id="accountId" placeholder="Insira o ID da conta de anúncios">
+                            </div>
+                            <button type="submit" class="btn btn-info">Enviar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">Resposta</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="response">
+                            <p class="text-muted">A resposta da API será exibida aqui.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('postForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const token = document.getElementById('token').value;
+            if (!token) {
+                alert('Por favor, insira um token de acesso.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/meta-ads/metricas', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ token: token })
+                });
+
+                const data = await response.json();
+                displayResponse(data);
+            } catch (error) {
+                displayError(error);
+            }
+        });
+
+        document.getElementById('getForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const token = document.getElementById('getToken').value;
+            const campaignId = document.getElementById('campaignId').value;
+            
+            if (!token || !campaignId) {
+                alert('Por favor, preencha todos os campos.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/meta-ads/campanha/${campaignId}?token=${encodeURIComponent(token)}`);
+                const data = await response.json();
+                displayResponse(data);
+            } catch (error) {
+                displayError(error);
+            }
+        });
+
+        document.getElementById('accountForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const token = document.getElementById('accountToken').value;
+            const accountId = document.getElementById('accountId').value;
+            
+            if (!token || !accountId) {
+                alert('Por favor, preencha todos os campos.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/meta-ads/conta/${accountId}?token=${encodeURIComponent(token)}`);
+                const data = await response.json();
+                displayResponse(data);
+            } catch (error) {
+                displayError(error);
+            }
+        });
+
+        function displayResponse(data) {
+            const responseElement = document.getElementById('response');
+            let html = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            
+            // Se houver erro na resposta, exibir detalhes do erro
+            if (data.error) {
+                html += `
+                <div class="error-details">
+                    <h5>Detalhes do Erro:</h5>
+                    <p><strong>Tipo:</strong> ${data.error.type || 'N/A'}</p>
+                    <p><strong>Código:</strong> ${data.error.code || 'N/A'}</p>
+                    <p><strong>Mensagem:</strong> ${data.error.message || 'N/A'}</p>
+                    <p><strong>Detalhes:</strong> ${data.error.details || 'N/A'}</p>
+                </div>`;
+            }
+            
+            responseElement.innerHTML = html;
+        }
+
+        function displayError(error) {
+            const responseElement = document.getElementById('response');
+            responseElement.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
+        }
+    </script>
+</body>
+</html>
