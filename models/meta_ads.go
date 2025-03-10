@@ -5,6 +5,13 @@ type MetaAdsRequest struct {
 	Token string `json:"token" binding:"required"`
 }
 
+// OAuthTokenResponse estrutura para decodificar a resposta JSON do token de acesso OAuth
+type OAuthTokenResponse struct {
+	AccessToken string `json:"access_token"`
+	TokenType   string `json:"token_type"`
+	ExpiresIn   int    `json:"expires_in"`
+}
+
 // MetaAdsData contém as métricas do Meta Ads
 type MetaAdsData struct {
 	ID              string  `json:"id,omitempty"`              // ID da campanha ou conta

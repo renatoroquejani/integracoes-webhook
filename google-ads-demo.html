@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Ads API Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 20px;
+        }
+        .card {
+            margin-bottom: 20px;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #response {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .error-details {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        .nav-tabs {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4">Google Ads API Demo</h1>
+        
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="metricas-tab" data-bs-toggle="tab" data-bs-target="#metricas" type="button" role="tab" aria-controls="metricas" aria-selected="true">Métricas Gerais</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="campanha-tab" data-bs-toggle="tab" data-bs-target="#campanha" type="button" role="tab" aria-controls="campanha" aria-selected="false">Insights de Campanha</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="conta-tab" data-bs-toggle="tab" data-bs-target="#conta" type="button" role="tab" aria-controls="conta" aria-selected="false">Insights de Conta</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="campanhas-tab" data-bs-toggle="tab" data-bs-target="#campanhas" type="button" role="tab" aria-controls="campanhas" aria-selected="false">Listar Campanhas</button>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="myTabContent">
+            <!-- Métricas Gerais -->
+            <div class="tab-pane fade show active" id="metricas" role="tabpanel" aria-labelledby="metricas-tab">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">POST /google-ads/metricas</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>Consulta métricas gerais do Google Ads usando as credenciais fornecidas no corpo da requisição.</p>
+                                <form id="postForm">
+                                    <div class="mb-3">
+                                        <label for="clientId" class="form-label">Client ID:</label>
+                                        <input type="text" class="form-control" id="clientId" placeholder="Insira o Client ID do OAuth">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="clientSecret" class="form-label">Client Secret:</label>
+                                        <input type="text" class="form-control" id="clientSecret" placeholder="Insira o Client Secret do OAuth">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="refreshToken" class="form-label">Refresh Token:</label>
+                                        <input type="text" class="form-control" id="refreshToken" placeholder="Insira o Refresh Token do OAuth">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="managerId" class="form-label">Manager ID (opcional):</label>
+                                        <input type="text" class="form-control" id="managerId" placeholder="Insira o ID da conta gerenciadora (opcional)">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Enviar</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Insights de Campanha -->
+            <div class="tab-pane fade" id="campanha" role="tabpanel" aria-labelledby="campanha-tab">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">GET /google-ads/campanha/{campaign_id}</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>Obtém insights detalhados de uma campanha específica do Google Ads.</p>
+                                <form id="campaignForm">
+                                    <div class="mb-3">
+                                        <label for="campaignClientId" class="form-label">Client ID:</label>
+                                        <input type="text" class="form-control" id="campaignClientId" placeholder="Insira o Client ID do OAuth">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="campaignClientSecret" class="form-label">Client Secret:</label>
+                                        <input type="text" class="form-control" id="campaignClientSecret" placeholder="Insira o Client Secret do OAuth">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="campaignRefreshToken" class="form-label">Refresh Token:</label>
+                                        <input type="text" class="form-control" id="campaignRefreshToken" placeholder="Insira o Refresh Token do OAuth">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="campaignId" class="form-label">ID da Campanha:</label>
+                                        <input type="text" class="form-control" id="campaignId" placeholder="Insira o ID da campanha">
+                                    </div>
+                                    <button type="submit" class="btn btn-success">Enviar</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Insights de Conta -->
+            <div class="tab-pane fade" id="conta" role="tabpanel" aria-labelledby="conta-tab">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0">GET /google-ads/conta/{account_id}</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>Obtém insights detalhados de uma conta de anúncios do Google Ads.</p>
+                                <form id="accountForm">
+                                    <div class="mb-3">
+                                        <label for="accountClientId" class="form-label">Client ID:</label>
+                                        <input type="text" class="form-control" id="accountClientId" placeholder="Insira o Client ID do OAuth">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="accountClientSecret" class="form-label">Client Secret:</label>
+                                        <input type="text" class="form-control" id="accountClientSecret" placeholder="Insira o Client Secret do OAuth">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="accountRefreshToken" class="form-label">Refresh Token:</label>
+                                        <input type="text" class="form-control" id="accountRefreshToken" placeholder="Insira o Refresh Token do OAuth">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="accountId" class="form-label">ID da Conta:</label>
+                                        <input type="text" class="form-control" id="accountId" placeholder="Insira o ID da conta de anúncios">
+                                    </div>
+                                    <button type="submit" class="btn btn-info">Enviar</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Listar Campanhas -->
+            <div class="tab-pane fade" id="campanhas" role="tabpanel" aria-labelledby="campanhas-tab">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-warning text-dark">
+                                <h5 class="mb-0">GET /google-ads/campanhas/{account_id}</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>Lista todas as campanhas disponíveis para uma conta de anúncios do Google Ads.</p>
+                                <form id="campaignsListForm">
+                                    <div class="mb-3">
+                                        <label for="listClientId" class="form-label">Client ID:</label>
+                                        <input type="text" class="form-control" id="listClientId" placeholder="Insira o Client ID do OAuth">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="listClientSecret" class="form-label">Client Secret:</label>
+                                        <input type="text" class="form-control" id="listClientSecret" placeholder="Insira o Client Secret do OAuth">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="listRefreshToken" class="form-label">Refresh Token:</label>
+                                        <input type="text" class="form-control" id="listRefreshToken" placeholder="Insira o Refresh Token do OAuth">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="listAccountId" class="form-label">ID da Conta:</label>
+                                        <input type="text" class="form-control" id="listAccountId" placeholder="Insira o ID da conta de anúncios">
+                                    </div>
+                                    <button type="submit" class="btn btn-warning">Enviar</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">Resposta</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="response">
+                            <p class="text-muted">A resposta da API será exibida aqui.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('postForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const clientId = document.getElementById('clientId').value;
+            const clientSecret = document.getElementById('clientSecret').value;
+            const refreshToken = document.getElementById('refreshToken').value;
+            const managerId = document.getElementById('managerId').value;
+            
+            if (!clientId || !clientSecret || !refreshToken) {
+                alert('Por favor, preencha todos os campos obrigatórios.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/google-ads/metricas', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        client_id: clientId,
+                        client_secret: clientSecret,
+                        refresh_token: refreshToken,
+                        manager_id: managerId
+                    })
+                });
+
+                const data = await response.json();
+                displayResponse(data);
+            } catch (error) {
+                displayError(error);
+            }
+        });
+
+        document.getElementById('campaignForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const clientId = document.getElementById('campaignClientId').value;
+            const clientSecret = document.getElementById('campaignClientSecret').value;
+            const refreshToken = document.getElementById('campaignRefreshToken').value;
+            const campaignId = document.getElementById('campaignId').value;
+            
+            if (!clientId || !clientSecret || !refreshToken || !campaignId) {
+                alert('Por favor, preencha todos os campos.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/google-ads/campanha/${campaignId}?client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}&refresh_token=${encodeURIComponent(refreshToken)}`);
+                const data = await response.json();
+                displayResponse(data);
+            } catch (error) {
+                displayError(error);
+            }
+        });
+
+        document.getElementById('accountForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const clientId = document.getElementById('accountClientId').value;
+            const clientSecret = document.getElementById('accountClientSecret').value;
+            const refreshToken = document.getElementById('accountRefreshToken').value;
+            const accountId = document.getElementById('accountId').value;
+            
+            if (!clientId || !clientSecret || !refreshToken || !accountId) {
+                alert('Por favor, preencha todos os campos.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/google-ads/conta/${accountId}?client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}&refresh_token=${encodeURIComponent(refreshToken)}`);
+                const data = await response.json();
+                displayResponse(data);
+            } catch (error) {
+                displayError(error);
+            }
+        });
+
+        document.getElementById('campaignsListForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const clientId = document.getElementById('listClientId').value;
+            const clientSecret = document.getElementById('listClientSecret').value;
+            const refreshToken = document.getElementById('listRefreshToken').value;
+            const accountId = document.getElementById('listAccountId').value;
+            
+            if (!clientId || !clientSecret || !refreshToken || !accountId) {
+                alert('Por favor, preencha todos os campos.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/google-ads/campanhas/${accountId}?client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}&refresh_token=${encodeURIComponent(refreshToken)}`);
+                const data = await response.json();
+                displayResponse(data);
+            } catch (error) {
+                displayError(error);
+            }
+        });
+
+        function displayResponse(data) {
+            const responseElement = document.getElementById('response');
+            let html = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            
+            // Se houver erro na resposta, exibir detalhes do erro
+            if (data.error) {
+                html += `
+                <div class="error-details">
+                    <h5>Detalhes do Erro:</h5>
+                    <p><strong>Tipo:</strong> ${data.error.type || 'N/A'}</p>
+                    <p><strong>Código:</strong> ${data.error.code || 'N/A'}</p>
+                    <p><strong>Mensagem:</strong> ${data.error.message || 'N/A'}</p>
+                    <p><strong>Detalhes:</strong> ${data.error.details || 'N/A'}</p>
+                </div>`;
+            }
+            
+            responseElement.innerHTML = html;
+        }
+
+        function displayError(error) {
+            const responseElement = document.getElementById('response');
+            responseElement.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
+        }
+    </script>
+</body>
+</html>

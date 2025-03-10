@@ -1,8 +1,11 @@
 package services
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -16,14 +19,98 @@ func init() {
 	fb.Version = "v22.0"
 }
 
+// MetaAdsConfig contém as configurações necessárias para autenticação com a API do Meta Ads
+type MetaAdsConfig struct {
+	AppID       string
+	AppSecret   string
+	RedirectURI string
+	State       string
+}
+
 // MetaAdsService implementa o serviço para integração com o Meta Ads
 type MetaAdsService struct {
-	// Configurações do serviço, se necessário
+	// Configurações do serviço
+	Config MetaAdsConfig
 }
 
 // NewMetaAdsService cria uma nova instância do serviço Meta Ads
 func NewMetaAdsService() *MetaAdsService {
 	return &MetaAdsService{}
+}
+
+// NewMetaAdsServiceWithConfig cria uma nova instância do serviço Meta Ads com configurações específicas
+func NewMetaAdsServiceWithConfig(appID, appSecret, redirectURI, state string) *MetaAdsService {
+	return &MetaAdsService{
+		Config: MetaAdsConfig{
+			AppID:       appID,
+			AppSecret:   appSecret,
+			RedirectURI: redirectURI,
+			State:       state,
+		},
+	}
+}
+
+// GetAuthURL retorna a URL para autorização do usuário
+func (s *MetaAdsService) GetAuthURL() (string, error) {
+	if s.Config.AppID == "" || s.Config.RedirectURI == "" {
+		return "", errors.New("configurações incompletas: AppID e RedirectURI são obrigatórios")
+	}
+
+	authURL, err := url.Parse("https://www.facebook.com/v15.0/dialog/oauth")
+	if err != nil {
+		return "", fmt.Errorf("erro ao parsear URL: %w", err)
+	}
+
+	query := url.Values{}
+	query.Set("client_id", s.Config.AppID)
+	query.Set("redirect_uri", s.Config.RedirectURI)
+	query.Set("state", s.Config.State)
+	query.Set("scope", "ads_read,business_management")
+	authURL.RawQuery = query.Encode()
+
+	return authURL.String(), nil
+}
+
+// ExchangeCodeForToken troca o código de autorização por um token de acesso
+func (s *MetaAdsService) ExchangeCodeForToken(authorizationCode string) (*models.OAuthTokenResponse, error) {
+	if s.Config.AppID == "" || s.Config.AppSecret == "" || s.Config.RedirectURI == "" {
+		return nil, errors.New("configurações incompletas: AppID, AppSecret e RedirectURI são obrigatórios")
+	}
+
+	if authorizationCode == "" {
+		return nil, errors.New("código de autorização não fornecido")
+	}
+
+	tokenURL, err := url.Parse("https://graph.facebook.com/v15.0/oauth/access_token")
+	if err != nil {
+		return nil, fmt.Errorf("erro ao parsear URL do token: %w", err)
+	}
+
+	tokenParams := url.Values{}
+	tokenParams.Set("client_id", s.Config.AppID)
+	tokenParams.Set("redirect_uri", s.Config.RedirectURI)
+	tokenParams.Set("client_secret", s.Config.AppSecret)
+	tokenParams.Set("code", authorizationCode)
+	tokenURL.RawQuery = tokenParams.Encode()
+
+	// Realiza a requisição GET para obter o token
+	resp, err := http.Get(tokenURL.String())
+	if err != nil {
+		return nil, fmt.Errorf("erro ao fazer requisição para obter o token: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("erro na resposta da API: %v", resp.Status)
+	}
+
+	// Decodifica a resposta JSON
+	var tokenResponse models.OAuthTokenResponse
+	if err := json.NewDecoder(resp.Body).Decode(&tokenResponse); err != nil {
+		return nil, fmt.Errorf("erro ao decodificar resposta JSON: %w", err)
+	}
+
+	return &tokenResponse, nil
 }
 
 // GetMetricas obtém as métricas principais do Meta Ads usando o token fornecido
