@@ -20,7 +20,7 @@ import (
 // Configurações para OAuth do Meta Ads
 const (
 	metaAppID       = "647870654327010"                         // Substitua pelo App ID real do seu aplicativo Meta
-	metaAppSecret   = "e02a525fdae52533d1a5e8123be590c5"        // Substitua pelo App Secret real do seu aplicativo Meta
+	metaAppSecret   = "APP_SECRET"                              // Substitua pelo App Secret real do seu aplicativo Meta
 	metaRedirectURI = "http://localhost:8081/meta-ads/callback" // URI de redirecionamento após autorização
 	metaState       = "csrf_protection_state_value"             // Valor para proteção CSRF
 )
