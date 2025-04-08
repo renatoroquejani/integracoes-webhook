@@ -7,9 +7,10 @@ type MetaAdsRequest struct {
 
 // OAuthTokenResponse estrutura para decodificar a resposta JSON do token de acesso OAuth
 type OAuthTokenResponse struct {
-	AccessToken string `json:"access_token"`
-	TokenType   string `json:"token_type"`
-	ExpiresIn   int    `json:"expires_in"`
+	AccessToken  string `json:"access_token"`
+	TokenType    string `json:"token_type"`
+	ExpiresIn    int    `json:"expires_in"`
+	RefreshToken string `json:"refresh_token,omitempty"` // Adicionado para suportar o refresh token do Google OAuth
 }
 
 // MetaAdsData contém as métricas do Meta Ads

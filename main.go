@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	_ "poc-integracoes-onm/docs" // Importa a documentação do Swagger
@@ -18,11 +19,19 @@ import (
 )
 
 // Configurações para OAuth do Meta Ads
-const (
-	metaAppID       = "647870654327010"                         // Substitua pelo App ID real do seu aplicativo Meta
-	metaAppSecret   = "APP_SECRET"                              // Substitua pelo App Secret real do seu aplicativo Meta
-	metaRedirectURI = "http://localhost:8081/meta-ads/callback" // URI de redirecionamento após autorização
-	metaState       = "csrf_protection_state_value"             // Valor para proteção CSRF
+var (
+	metaAppID       = os.Getenv("META_APP_ID")                  // App ID do seu aplicativo Meta
+	metaAppSecret   = os.Getenv("META_APP_SECRET")              // App Secret do seu aplicativo Meta
+	metaRedirectURI = os.Getenv("META_REDIRECT_URI")            // URI de redirecionamento após autorização
+	metaState       = os.Getenv("META_STATE")                   // Valor para proteção CSRF
+)
+
+// Configurações para OAuth do Google Ads
+var (
+	googleClientID     = os.Getenv("GOOGLE_CLIENT_ID")          // Client ID do seu projeto Google
+	googleClientSecret = os.Getenv("GOOGLE_CLIENT_SECRET")      // Client Secret do seu projeto Google
+	googleRedirectURI  = os.Getenv("GOOGLE_REDIRECT_URI")       // URI de redirecionamento após autorização
+	googleState        = os.Getenv("GOOGLE_STATE")              // Valor para proteção CSRF
 )
 
 // @title API de Webhooks e Integrações
@@ -80,6 +89,12 @@ func main() {
 	r.GET("/google-ads/campanha/:campaign_id", getGoogleAdsCampaignInsights)
 	r.GET("/google-ads/conta/:account_id", getGoogleAdsAccountInsights)
 	r.GET("/google-ads/campanhas/:account_id", getGoogleAdsCampaigns)
+
+	// Novas rotas para autenticação OAuth do Google Ads
+	r.GET("/google-ads/auth", handleGoogleAdsAuth)
+	r.GET("/google-ads/callback", handleGoogleAdsCallback)
+	// Rota para testar conexão básica com a API do Google
+	r.GET("/google-ads/test-connection", testGoogleConnection)
 
 	// Servir a página de demonstração do Meta Ads
 	r.StaticFile("/meta-ads-demo.html", "./meta-ads-demo.html")
@@ -892,4 +907,154 @@ func handleMetaAdsCallback(c *gin.Context) {
 
 	// Retornar o token de acesso
 	c.JSON(http.StatusOK, tokenResponse)
+}
+
+// @Summary Iniciar autenticação OAuth do Google Ads
+// @Description Redireciona o usuário para a página de autorização do Google
+// @Tags Google Ads
+// @Produce html
+// @Success 302 {string} string "Redirecionamento para a página de autorização do Google"
+// @Failure 400 {object} models.GoogleAdsResponse
+// @Router /google-ads/auth [get]
+func handleGoogleAdsAuth(c *gin.Context) {
+	// Criar instância do serviço Google Ads com as configurações
+	googleAdsService := services.NewGoogleAdsServiceWithConfig(
+		googleClientID,
+		googleClientSecret,
+		googleRedirectURI,
+		googleState,
+	)
+
+	// Obter URL de autorização
+	authURL, err := googleAdsService.GetAuthURL()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.GoogleAdsResponse{
+			Success: false,
+			Message: "Erro ao gerar URL de autorização",
+			Error: &models.ErrorInfo{
+				Message: err.Error(),
+				Type:    "OAuth Error",
+			},
+		})
+		return
+	}
+
+	// Redirecionar o usuário para a URL de autorização
+	c.Redirect(http.StatusFound, authURL)
+}
+
+// @Summary Callback da autenticação OAuth do Google Ads
+// @Description Recebe o código de autorização e o troca por um token de acesso
+// @Tags Google Ads
+// @Produce json
+// @Param code query string true "Código de autorização"
+// @Param state query string true "Estado para verificação CSRF"
+// @Success 200 {object} models.OAuthTokenResponse
+// @Failure 400 {object} models.GoogleAdsResponse
+// @Router /google-ads/callback [get]
+func handleGoogleAdsCallback(c *gin.Context) {
+	// Obter código e state da query
+	code := c.Query("code")
+	state := c.Query("state")
+
+	// Verificar se o state corresponde ao valor esperado (proteção CSRF)
+	if state != googleState {
+		c.JSON(http.StatusBadRequest, models.GoogleAdsResponse{
+			Success: false,
+			Message: "Erro de validação: state inválido",
+			Error: &models.ErrorInfo{
+				Message: "O valor 'state' não corresponde ao valor esperado",
+				Type:    "Security Error",
+			},
+		})
+		return
+	}
+
+	// Verificar se o código foi fornecido
+	if code == "" {
+		c.JSON(http.StatusBadRequest, models.GoogleAdsResponse{
+			Success: false,
+			Message: "Código de autorização não fornecido",
+			Error: &models.ErrorInfo{
+				Message: "O parâmetro 'code' é obrigatório",
+				Type:    "Validation Error",
+			},
+		})
+		return
+	}
+
+	// Criar instância do serviço Google Ads com as configurações
+	googleAdsService := services.NewGoogleAdsServiceWithConfig(
+		googleClientID,
+		googleClientSecret,
+		googleRedirectURI,
+		googleState,
+	)
+
+	// Trocar o código por um token de acesso
+	tokenResponse, err := googleAdsService.ExchangeCodeForToken(code)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.GoogleAdsResponse{
+			Success: false,
+			Message: "Erro ao obter token de acesso",
+			Error: &models.ErrorInfo{
+				Message: err.Error(),
+				Type:    "OAuth Error",
+			},
+		})
+		return
+	}
+
+	// Retornar o token de acesso
+	c.JSON(http.StatusOK, tokenResponse)
+}
+
+// @Summary Testar conexão básica com a API do Google
+// @Description Verifica se a conexão com a API do Google está funcionando corretamente
+// @Tags Google Ads
+// @Produce json
+// @Param client_id query string false "ID do cliente OAuth (opcional)"
+// @Param client_secret query string false "Secret do cliente OAuth (opcional)"
+// @Success 200 {object} models.GoogleAdsResponse
+// @Failure 400 {object} models.GoogleAdsResponse
+// @Router /google-ads/test-connection [get]
+func testGoogleConnection(c *gin.Context) {
+	// Obter parâmetros da query (opcionais)
+	clientID := c.Query("client_id")
+	clientSecret := c.Query("client_secret")
+
+	// Se não foram fornecidos, usar valores padrão
+	if clientID == "" {
+		clientID = googleClientID
+	}
+	if clientSecret == "" {
+		clientSecret = googleClientSecret
+	}
+
+	// Criar instância do serviço Google Ads
+	googleAdsService := services.NewGoogleAdsService()
+
+	// Configurar clientID e clientSecret manualmente
+	googleAdsService.Config.ClientID = clientID
+	googleAdsService.Config.ClientSecret = clientSecret
+
+	// Testar conexão
+	err := googleAdsService.TestConnection()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.GoogleAdsResponse{
+			Success: false,
+			Message: "Erro ao testar conexão",
+			Error: &models.ErrorInfo{
+				Message: err.Error(),
+				Type:    "Connection Error",
+			},
+		})
+		return
+	}
+
+	// Retornar resposta de sucesso
+	c.JSON(http.StatusOK, models.GoogleAdsResponse{
+		Success: true,
+		Message: "Conexão testada com sucesso",
+	})
 }

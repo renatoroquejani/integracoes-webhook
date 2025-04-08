@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 
@@ -39,13 +40,13 @@ func NewMetaAdsService() *MetaAdsService {
 }
 
 // NewMetaAdsServiceWithConfig cria uma nova instância do serviço Meta Ads com configurações específicas
-func NewMetaAdsServiceWithConfig(appID, appSecret, redirectURI, state string) *MetaAdsService {
+func NewMetaAdsServiceWithConfig() *MetaAdsService {
 	return &MetaAdsService{
 		Config: MetaAdsConfig{
-			AppID:       appID,
-			AppSecret:   appSecret,
-			RedirectURI: redirectURI,
-			State:       state,
+			AppID:       os.Getenv("META_APP_ID"),
+			AppSecret:   os.Getenv("META_APP_SECRET"),
+			RedirectURI: os.Getenv("META_REDIRECT_URI"),
+			State:       os.Getenv("META_STATE"),
 		},
 	}
 }
@@ -56,16 +57,16 @@ func (s *MetaAdsService) GetAuthURL() (string, error) {
 		return "", errors.New("configurações incompletas: AppID e RedirectURI são obrigatórios")
 	}
 
-	authURL, err := url.Parse("https://www.facebook.com/v15.0/dialog/oauth")
+	authURL, err := url.Parse("https://www.facebook.com/v20.0/dialog/oauth")
 	if err != nil {
 		return "", fmt.Errorf("erro ao parsear URL: %w", err)
 	}
 
 	query := url.Values{}
-	query.Set("client_id", s.Config.AppID)
+	query.Set("app_id", s.Config.AppID)
 	query.Set("redirect_uri", s.Config.RedirectURI)
 	query.Set("state", s.Config.State)
-	query.Set("scope", "ads_read,business_management")
+	query.Set("scope", "ads_read,business_management,public_profile,email")
 	authURL.RawQuery = query.Encode()
 
 	return authURL.String(), nil
