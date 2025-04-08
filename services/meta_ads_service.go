@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 
@@ -40,13 +39,13 @@ func NewMetaAdsService() *MetaAdsService {
 }
 
 // NewMetaAdsServiceWithConfig cria uma nova instância do serviço Meta Ads com configurações específicas
-func NewMetaAdsServiceWithConfig() *MetaAdsService {
+func NewMetaAdsServiceWithConfig(appID, appSecret, redirectURI, state string) *MetaAdsService {
 	return &MetaAdsService{
 		Config: MetaAdsConfig{
-			AppID:       os.Getenv("META_APP_ID"),
-			AppSecret:   os.Getenv("META_APP_SECRET"),
-			RedirectURI: os.Getenv("META_REDIRECT_URI"),
-			State:       os.Getenv("META_STATE"),
+			AppID:       appID,
+			AppSecret:   appSecret,
+			RedirectURI: redirectURI,
+			State:       state,
 		},
 	}
 }

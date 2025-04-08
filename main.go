@@ -14,30 +14,58 @@ import (
 
 	"github.com/gin-gonic/gin"
 	fb "github.com/huandu/facebook/v2"
+	"github.com/joho/godotenv"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-// Configurações para OAuth do Meta Ads
 var (
-	metaAppID       = os.Getenv("META_APP_ID")                  // App ID do seu aplicativo Meta
-	metaAppSecret   = os.Getenv("META_APP_SECRET")              // App Secret do seu aplicativo Meta
-	metaRedirectURI = os.Getenv("META_REDIRECT_URI")            // URI de redirecionamento após autorização
-	metaState       = os.Getenv("META_STATE")                   // Valor para proteção CSRF
-)
+	metaAppID       string
+	metaAppSecret   string
+	metaRedirectURI string
+	metaState       string
 
-// Configurações para OAuth do Google Ads
-var (
-	googleClientID     = os.Getenv("GOOGLE_CLIENT_ID")          // Client ID do seu projeto Google
-	googleClientSecret = os.Getenv("GOOGLE_CLIENT_SECRET")      // Client Secret do seu projeto Google
-	googleRedirectURI  = os.Getenv("GOOGLE_REDIRECT_URI")       // URI de redirecionamento após autorização
-	googleState        = os.Getenv("GOOGLE_STATE")              // Valor para proteção CSRF
+	googleClientID     string
+	googleClientSecret string
+	googleRedirectURI  string
+	googleState        string
 )
 
 // @title API de Webhooks e Integrações
 // @version 1.0
 // @description API para receber webhooks da Kiwify, Hotmart, Kirvano e integração com Meta Ads e Google Ads
 // @host localhost:8081
+
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Warning: .env file not found or failed to load")
+	}
+
+	// Load Meta Ads environment variables
+	metaAppID = os.Getenv("META_APP_ID")
+	metaAppSecret = os.Getenv("META_APP_SECRET")
+	metaRedirectURI = os.Getenv("META_REDIRECT_URI")
+	metaState = os.Getenv("META_STATE")
+
+	// Load Google Ads environment variables
+	googleClientID = os.Getenv("GOOGLE_CLIENT_ID")
+	googleClientSecret = os.Getenv("GOOGLE_CLIENT_SECRET")
+	googleRedirectURI = os.Getenv("GOOGLE_REDIRECT_URI")
+	googleState = os.Getenv("GOOGLE_STATE")
+
+	// Debug logs to verify loaded environment variables
+	log.Printf("META_APP_ID: %s", metaAppID)
+	log.Printf("META_APP_SECRET: %s", metaAppSecret)
+	log.Printf("META_REDIRECT_URI: %s", metaRedirectURI)
+	log.Printf("META_STATE: %s", metaState)
+
+	log.Printf("GOOGLE_CLIENT_ID: %s", googleClientID)
+	log.Printf("GOOGLE_CLIENT_SECRET: %s", googleClientSecret)
+	log.Printf("GOOGLE_REDIRECT_URI: %s", googleRedirectURI)
+	log.Printf("GOOGLE_STATE: %s", googleState)
+}
+
 // @BasePath /
 // @tag.name Meta Ads
 // @tag.description Endpoints para integração com Meta Ads
