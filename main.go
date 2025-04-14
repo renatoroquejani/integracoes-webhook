@@ -105,6 +105,12 @@ func main() {
 	r.GET("/meta-ads/campanha/:campaign_id", getMetaAdsCampaignInsights)
 	r.GET("/meta-ads/conta/:account_id", getMetaAdsAccountInsights)
 
+	// Nova rota para dados consolidados de todas as campanhas de todas as contas
+	r.POST("/meta-ads/consolidated", getMetaAdsConsolidatedData)
+	r.GET("/meta-ads/consolidated", getMetaAdsConsolidatedData)
+	r.POST("/api/meta-ads/consolidated", getMetaAdsConsolidatedData)
+	r.GET("/api/meta-ads/consolidated", getMetaAdsConsolidatedData)
+
 	// Novas rotas para autenticação OAuth do Meta Ads
 	r.GET("/meta-ads/auth", handleMetaAdsAuth)
 	r.GET("/meta-ads/callback", handleMetaAdsCallback)
@@ -117,6 +123,12 @@ func main() {
 	r.GET("/google-ads/campanha/:campaign_id", getGoogleAdsCampaignInsights)
 	r.GET("/google-ads/conta/:account_id", getGoogleAdsAccountInsights)
 	r.GET("/google-ads/campanhas/:account_id", getGoogleAdsCampaigns)
+
+	// Nova rota para dados consolidados de todas as campanhas de todas as contas do Google Ads
+	r.POST("/google-ads/consolidated", getGoogleAdsConsolidatedData)
+	r.GET("/google-ads/consolidated", getGoogleAdsConsolidatedData)
+	r.POST("/api/google-ads/consolidated", getGoogleAdsConsolidatedData)
+	r.GET("/api/google-ads/consolidated", getGoogleAdsConsolidatedData)
 
 	// Novas rotas para autenticação OAuth do Google Ads
 	r.GET("/google-ads/auth", handleGoogleAdsAuth)
@@ -1079,10 +1091,149 @@ func testGoogleConnection(c *gin.Context) {
 		})
 		return
 	}
-
 	// Retornar resposta de sucesso
 	c.JSON(http.StatusOK, models.GoogleAdsResponse{
 		Success: true,
 		Message: "Conexão testada com sucesso",
+	})
+}
+
+// getGoogleAdsConsolidatedData godoc
+// @Summary Dados consolidados de todas as campanhas e contas do Google Ads
+// @Description Consulta dados consolidados do Google Ads usando as credenciais fornecidas na requisição. Retorna uma lista com métricas de todas as campanhas de todas as contas que o usuário tem acesso.
+// @Tags Google Ads
+// @Accept json
+// @Produce json
+// @Param request body models.GoogleAdsRequest true "Credenciais de acesso do Google Ads"
+// @Success 200 {object} map[string]interface{} "Lista de métricas consolidadas"
+// @Failure 400 {object} models.GoogleAdsResponse "Erro na requisição"
+// @Failure 500 {object} models.GoogleAdsResponse "Erro interno do servidor"
+// @Router /api/google-ads/consolidated [post]
+func getGoogleAdsConsolidatedData(c *gin.Context) {
+	var clientID, clientSecret, refreshToken string
+
+	if c.Request.Method == "GET" {
+		// Para GET, extrair parâmetros da query string
+		clientID = c.Query("client_id")
+		clientSecret = c.Query("client_secret")
+		refreshToken = c.Query("refresh_token")
+
+		if clientID == "" || clientSecret == "" || refreshToken == "" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"message": "Credenciais incompletas nos parâmetros de consulta",
+				"error":   &models.ErrorInfo{Message: "client_id, client_secret e refresh_token são obrigatórios"},
+			})
+			return
+		}
+	} else {
+		// Para POST, extrair parâmetros do corpo da requisição
+		var request models.GoogleAdsRequest
+		if err := c.ShouldBindJSON(&request); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"message": "Erro ao processar a requisição",
+				"error":   extractErrorInfo(err),
+			})
+			return
+		}
+
+		clientID = request.ClientID
+		clientSecret = request.ClientSecret
+		refreshToken = request.RefreshToken
+	}
+
+	log.Printf("Iniciando busca de dados consolidados do Google Ads com client_id: %s...\n", clientID)
+	googleAdsService := services.NewGoogleAdsService()
+
+	data, err := googleAdsService.GetConsolidatedCampaignData(clientID, clientSecret, refreshToken)
+	if err != nil {
+		log.Printf("Erro ao obter dados consolidados do Google Ads: %v\n", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Erro ao obter dados consolidados do Google Ads",
+			"error":   extractErrorInfo(err),
+		})
+		return
+	}
+
+	log.Printf("Dados consolidados do Google Ads obtidos com sucesso. Total de itens: %d\n", len(data))
+
+	// Se a lista estiver vazia, retornar lista vazia
+	if len(data) == 0 {
+		log.Println("Lista de dados vazia.")
+	}
+
+	// Return the actual data
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Dados consolidados obtidos com sucesso",
+		"data":    data,
+	})
+}
+
+// getMetaAdsConsolidatedData godoc
+// @Summary Dados consolidados de todas as campanhas e contas do Meta Ads
+// @Description Consulta dados consolidados do Meta Ads usando um token fornecido na requisição. Retorna uma lista com métricas de todas as campanhas de todas as contas que o usuário tem acesso.
+// @Tags Meta Ads
+// @Accept json
+// @Produce json
+// @Param request body models.MetaAdsRequest true "Token de acesso do Meta Ads"
+// @Success 200 {object} map[string]interface{} "Lista de métricas consolidadas"
+// @Failure 400 {object} models.MetaAdsResponse "Erro na requisição"
+// @Failure 500 {object} models.MetaAdsResponse "Erro interno do servidor"
+// @Router /api/meta-ads/consolidated [post]
+func getMetaAdsConsolidatedData(c *gin.Context) {
+	var token string
+
+	if c.Request.Method == "GET" {
+		token = c.Query("token")
+		if token == "" {
+			c.JSON(http.StatusBadRequest, models.MetaAdsResponse{
+				Success: false,
+				Message: "Token não fornecido nos parâmetros de consulta",
+				Error:   &models.ErrorInfo{Message: "Token é obrigatório"},
+			})
+			return
+		}
+	} else {
+		var request models.MetaAdsRequest
+		if err := c.ShouldBindJSON(&request); err != nil {
+			c.JSON(http.StatusBadRequest, models.MetaAdsResponse{
+				Success: false,
+				Message: "Erro ao processar a requisição",
+				Error:   extractErrorInfo(err),
+			})
+			return
+		}
+		token = request.Token
+	}
+
+	log.Printf("Iniciando busca de dados consolidados com token: %s...\n", token[:10])
+	metaAdsService := services.NewMetaAdsService()
+
+	data, err := metaAdsService.GetConsolidatedCampaignData(token)
+	if err != nil {
+		log.Printf("Erro ao obter dados consolidados: %v\n", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Erro ao obter dados consolidados",
+			"error":   extractErrorInfo(err),
+		})
+		return
+	}
+
+	log.Printf("Dados consolidados obtidos com sucesso. Total de itens: %d\n", len(data))
+
+	// Se a lista estiver vazia, retornar lista vazia
+	if len(data) == 0 {
+		log.Println("Lista de dados vazia.")
+	}
+
+	// Return the actual data
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Dados consolidados obtidos com sucesso",
+		"data":    data,
 	})
 }

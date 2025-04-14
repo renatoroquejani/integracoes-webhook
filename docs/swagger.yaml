@@ -1,5 +1,103 @@
 basePath: /
 definitions:
+  models.ErrorInfo:
+    properties:
+      code:
+        type: integer
+      details:
+        type: string
+      message:
+        type: string
+      type:
+        type: string
+    type: object
+  models.GoogleAdsCampaignListResponse:
+    properties:
+      data:
+        description: Lista de campanhas
+        items:
+          $ref: '#/definitions/models.GoogleAdsData'
+        type: array
+      error:
+        allOf:
+        - $ref: '#/definitions/models.ErrorInfo'
+        description: Informações de erro, se houver
+      message:
+        description: Mensagem descritiva
+        type: string
+      success:
+        description: Indica se a operação foi bem-sucedida
+        type: boolean
+    type: object
+  models.GoogleAdsData:
+    properties:
+      clicks:
+        description: Número de cliques
+        type: integer
+      conversoes:
+        description: Número de conversões
+        type: integer
+      cpc:
+        description: Custo por Clique
+        type: number
+      ctr:
+        description: Click-Through Rate
+        type: number
+      custo_conversao:
+        description: Custo por conversão
+        type: number
+      id:
+        description: ID da campanha ou conta
+        type: string
+      impressions:
+        description: Número de impressões
+        type: integer
+      investimento_total:
+        description: Investimento Total
+        type: number
+      nome:
+        description: Nome da campanha ou conta
+        type: string
+      taxa_conversao:
+        description: Taxa de conversão
+        type: number
+    type: object
+  models.GoogleAdsRequest:
+    properties:
+      client_id:
+        description: ID do cliente OAuth
+        type: string
+      client_secret:
+        description: Secret do cliente OAuth
+        type: string
+      manager_id:
+        description: ID da conta gerenciadora (opcional)
+        type: string
+      refresh_token:
+        description: Token de atualização OAuth
+        type: string
+    required:
+    - client_id
+    - client_secret
+    - refresh_token
+    type: object
+  models.GoogleAdsResponse:
+    properties:
+      data:
+        allOf:
+        - $ref: '#/definitions/models.GoogleAdsData'
+        description: Dados do Google Ads
+      error:
+        allOf:
+        - $ref: '#/definitions/models.ErrorInfo'
+        description: Informações de erro, se houver
+      message:
+        description: Mensagem descritiva
+        type: string
+      success:
+        description: Indica se a operação foi bem-sucedida
+        type: boolean
+    type: object
   models.HotmartResponse:
     properties:
       data: {}
@@ -403,20 +501,18 @@ definitions:
       cac:
         description: Custo de Aquisição por Cliente
         type: number
-      campanha_id:
-        type: string
-      campanha_nome:
-        type: string
       ctr:
         description: Click-Through Rate
         type: number
-      data_fim:
+      id:
+        description: ID da campanha ou conta
         type: string
-      data_inicio:
-        type: string
-      investimento:
+      investimento_total:
         description: Investimento Total
         type: number
+      nome:
+        description: Nome da campanha ou conta
+        type: string
       numero_vendas:
         description: Número de Vendas
         type: integer
@@ -431,27 +527,430 @@ definitions:
   models.MetaAdsResponse:
     properties:
       data:
-        $ref: '#/definitions/models.MetaAdsData'
+        allOf:
+        - $ref: '#/definitions/models.MetaAdsData'
+        description: Dados do Meta Ads
+      error:
+        allOf:
+        - $ref: '#/definitions/models.ErrorInfo'
+        description: Informações de erro, se houver
       message:
+        description: Mensagem descritiva
         type: string
-      status:
+      success:
+        description: Indica se a operação foi bem-sucedida
+        type: boolean
+    type: object
+  models.OAuthTokenResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      refresh_token:
+        description: Adicionado para suportar o refresh token do Google OAuth
+        type: string
+      token_type:
         type: string
     type: object
 host: localhost:8081
 info:
   contact: {}
   description: API para receber webhooks da Kiwify, Hotmart, Kirvano e integração
-    com Meta Ads
+    com Meta Ads e Google Ads
   title: API de Webhooks e Integrações
   version: "1.0"
 paths:
-  /api/meta-ads:
+  /api/meta-ads/consolidated:
     post:
       consumes:
       - application/json
-      description: Consulta dados do Meta Ads usando um token fornecido
+      description: Consulta dados consolidados do Meta Ads usando um token fornecido
+        na requisição. Retorna uma lista com métricas de todas as campanhas de todas
+        as contas que o usuário tem acesso.
       parameters:
-      - description: Token de acesso ao Meta Ads
+      - description: Token de acesso do Meta Ads
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.MetaAdsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de métricas consolidadas
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Erro na requisição
+          schema:
+            $ref: '#/definitions/models.MetaAdsResponse'
+        "500":
+          description: Erro interno do servidor
+          schema:
+            $ref: '#/definitions/models.MetaAdsResponse'
+      summary: Dados consolidados de todas as campanhas e contas do Meta Ads
+      tags:
+      - Meta Ads
+  /google-ads/auth:
+    get:
+      description: Redireciona o usuário para a página de autorização do Google
+      produces:
+      - text/html
+      responses:
+        "302":
+          description: Redirecionamento para a página de autorização do Google
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.GoogleAdsResponse'
+      summary: Iniciar autenticação OAuth do Google Ads
+      tags:
+      - Google Ads
+  /google-ads/callback:
+    get:
+      description: Recebe o código de autorização e o troca por um token de acesso
+      parameters:
+      - description: Código de autorização
+        in: query
+        name: code
+        required: true
+        type: string
+      - description: Estado para verificação CSRF
+        in: query
+        name: state
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.OAuthTokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.GoogleAdsResponse'
+      summary: Callback da autenticação OAuth do Google Ads
+      tags:
+      - Google Ads
+  /google-ads/campanha/{campaign_id}:
+    get:
+      consumes:
+      - application/json
+      description: Obtém insights detalhados de uma campanha específica do Google
+        Ads
+      parameters:
+      - description: ID da campanha
+        in: path
+        name: campaign_id
+        required: true
+        type: string
+      - description: ID do cliente OAuth
+        in: query
+        name: client_id
+        required: true
+        type: string
+      - description: Secret do cliente OAuth
+        in: query
+        name: client_secret
+        required: true
+        type: string
+      - description: Token de atualização OAuth
+        in: query
+        name: refresh_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.GoogleAdsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.GoogleAdsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.GoogleAdsResponse'
+      summary: Obter insights de campanha do Google Ads
+      tags:
+      - Google Ads
+  /google-ads/campanhas/{account_id}:
+    get:
+      consumes:
+      - application/json
+      description: Lista todas as campanhas disponíveis para uma conta de anúncios
+        do Google Ads
+      parameters:
+      - description: ID da conta de anúncios
+        in: path
+        name: account_id
+        required: true
+        type: string
+      - description: ID do cliente OAuth
+        in: query
+        name: client_id
+        required: true
+        type: string
+      - description: Secret do cliente OAuth
+        in: query
+        name: client_secret
+        required: true
+        type: string
+      - description: Token de atualização OAuth
+        in: query
+        name: refresh_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.GoogleAdsCampaignListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.GoogleAdsCampaignListResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.GoogleAdsCampaignListResponse'
+      summary: Listar campanhas do Google Ads
+      tags:
+      - Google Ads
+  /google-ads/conta/{account_id}:
+    get:
+      consumes:
+      - application/json
+      description: Obtém insights detalhados de uma conta de anúncios do Google Ads
+      parameters:
+      - description: ID da conta de anúncios
+        in: path
+        name: account_id
+        required: true
+        type: string
+      - description: ID do cliente OAuth
+        in: query
+        name: client_id
+        required: true
+        type: string
+      - description: Secret do cliente OAuth
+        in: query
+        name: client_secret
+        required: true
+        type: string
+      - description: Token de atualização OAuth
+        in: query
+        name: refresh_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.GoogleAdsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.GoogleAdsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.GoogleAdsResponse'
+      summary: Obter insights de conta do Google Ads
+      tags:
+      - Google Ads
+  /google-ads/metricas:
+    post:
+      consumes:
+      - application/json
+      description: Obtém métricas como CTR, CPC, conversões e investimento total do
+        Google Ads
+      parameters:
+      - description: Credenciais de acesso do Google Ads
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.GoogleAdsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.GoogleAdsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.GoogleAdsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.GoogleAdsResponse'
+      summary: Obter métricas do Google Ads
+      tags:
+      - Google Ads
+  /google-ads/test-connection:
+    get:
+      description: Verifica se a conexão com a API do Google está funcionando corretamente
+      parameters:
+      - description: ID do cliente OAuth (opcional)
+        in: query
+        name: client_id
+        type: string
+      - description: Secret do cliente OAuth (opcional)
+        in: query
+        name: client_secret
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.GoogleAdsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.GoogleAdsResponse'
+      summary: Testar conexão básica com a API do Google
+      tags:
+      - Google Ads
+  /meta-ads/auth:
+    get:
+      description: Redireciona o usuário para a página de autorização do Meta
+      produces:
+      - text/html
+      responses:
+        "302":
+          description: Redirecionamento para a página de autorização do Meta
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.MetaAdsResponse'
+      summary: Iniciar autenticação OAuth do Meta Ads
+      tags:
+      - Meta Ads
+  /meta-ads/callback:
+    get:
+      description: Recebe o código de autorização e o troca por um token de acesso
+      parameters:
+      - description: Código de autorização
+        in: query
+        name: code
+        required: true
+        type: string
+      - description: Estado para verificação CSRF
+        in: query
+        name: state
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.OAuthTokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.MetaAdsResponse'
+      summary: Callback da autenticação OAuth do Meta Ads
+      tags:
+      - Meta Ads
+  /meta-ads/campanha/{campaign_id}:
+    get:
+      consumes:
+      - application/json
+      description: Obtém insights detalhados de uma campanha específica do Meta Ads
+      parameters:
+      - description: ID da campanha
+        in: path
+        name: campaign_id
+        required: true
+        type: string
+      - description: Token de acesso do Meta Ads
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.MetaAdsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.MetaAdsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.MetaAdsResponse'
+      summary: Obter insights de campanha do Meta Ads
+      tags:
+      - Meta Ads
+  /meta-ads/conta/{account_id}:
+    get:
+      consumes:
+      - application/json
+      description: Obtém insights detalhados de uma conta de anúncios do Meta Ads
+      parameters:
+      - description: ID da conta de anúncios
+        in: path
+        name: account_id
+        required: true
+        type: string
+      - description: Token de acesso do Meta Ads
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.MetaAdsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.MetaAdsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.MetaAdsResponse'
+      summary: Obter insights de conta do Meta Ads
+      tags:
+      - Meta Ads
+  /meta-ads/metricas:
+    post:
+      consumes:
+      - application/json
+      description: Obtém métricas como CTR, CAC, investimento total e número de vendas
+        do Meta Ads
+      parameters:
+      - description: Token de acesso do Meta Ads
         in: body
         name: request
         required: true
@@ -468,47 +967,13 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/models.MetaAdsResponse'
-        "401":
-          description: Unauthorized
+        "500":
+          description: Internal Server Error
           schema:
             $ref: '#/definitions/models.MetaAdsResponse'
-      summary: Meta Ads API
-  /api/meta-ads/metricas:
-    get:
-      consumes:
-      - application/json
-      description: Consulta métricas específicas do Meta Ads usando um token fornecido
-        via query parameter
-      parameters:
-      - description: Token de acesso ao Meta Ads
-        in: query
-        name: token
-        required: true
-        type: string
-      - description: ID da conta de anúncios (opcional)
-        in: query
-        name: account_id
-        type: string
-      - description: ID da campanha (opcional)
-        in: query
-        name: campaign_id
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.MetaAdsResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/models.MetaAdsResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/models.MetaAdsResponse'
-      summary: Meta Ads Métricas
+      summary: Obter métricas do Meta Ads
+      tags:
+      - Meta Ads
   /webhook/echo:
     post:
       consumes:
@@ -602,3 +1067,5 @@ swagger: "2.0"
 tags:
 - description: Endpoints para integração com Meta Ads
   name: Meta Ads
+- description: Endpoints para integração com Google Ads
+  name: Google Ads

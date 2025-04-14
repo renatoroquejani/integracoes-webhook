@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "API para receber webhooks da Kiwify, Hotmart, Kirvano e integração com Meta Ads",
+        "description": "API para receber webhooks da Kiwify, Hotmart, Kirvano e integração com Meta Ads e Google Ads",
         "title": "API de Webhooks e Integrações",
         "contact": {},
         "version": "1.0"
@@ -9,19 +9,588 @@
     "host": "localhost:8081",
     "basePath": "/",
     "paths": {
-        "/api/meta-ads": {
+        "/api/meta-ads/consolidated": {
             "post": {
-                "description": "Consulta dados do Meta Ads usando um token fornecido",
+                "description": "Consulta dados consolidados do Meta Ads usando um token fornecido na requisição. Retorna uma lista com métricas de todas as campanhas de todas as contas que o usuário tem acesso.",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Meta Ads API",
+                "tags": [
+                    "Meta Ads"
+                ],
+                "summary": "Dados consolidados de todas as campanhas e contas do Meta Ads",
                 "parameters": [
                     {
-                        "description": "Token de acesso ao Meta Ads",
+                        "description": "Token de acesso do Meta Ads",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.MetaAdsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de métricas consolidadas",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Erro na requisição",
+                        "schema": {
+                            "$ref": "#/definitions/models.MetaAdsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "$ref": "#/definitions/models.MetaAdsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/google-ads/auth": {
+            "get": {
+                "description": "Redireciona o usuário para a página de autorização do Google",
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "Google Ads"
+                ],
+                "summary": "Iniciar autenticação OAuth do Google Ads",
+                "responses": {
+                    "302": {
+                        "description": "Redirecionamento para a página de autorização do Google",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.GoogleAdsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/google-ads/callback": {
+            "get": {
+                "description": "Recebe o código de autorização e o troca por um token de acesso",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Google Ads"
+                ],
+                "summary": "Callback da autenticação OAuth do Google Ads",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Código de autorização",
+                        "name": "code",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Estado para verificação CSRF",
+                        "name": "state",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.OAuthTokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.GoogleAdsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/google-ads/campanha/{campaign_id}": {
+            "get": {
+                "description": "Obtém insights detalhados de uma campanha específica do Google Ads",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Google Ads"
+                ],
+                "summary": "Obter insights de campanha do Google Ads",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID da campanha",
+                        "name": "campaign_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID do cliente OAuth",
+                        "name": "client_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Secret do cliente OAuth",
+                        "name": "client_secret",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Token de atualização OAuth",
+                        "name": "refresh_token",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.GoogleAdsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.GoogleAdsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.GoogleAdsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/google-ads/campanhas/{account_id}": {
+            "get": {
+                "description": "Lista todas as campanhas disponíveis para uma conta de anúncios do Google Ads",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Google Ads"
+                ],
+                "summary": "Listar campanhas do Google Ads",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID da conta de anúncios",
+                        "name": "account_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID do cliente OAuth",
+                        "name": "client_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Secret do cliente OAuth",
+                        "name": "client_secret",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Token de atualização OAuth",
+                        "name": "refresh_token",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.GoogleAdsCampaignListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.GoogleAdsCampaignListResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.GoogleAdsCampaignListResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/google-ads/conta/{account_id}": {
+            "get": {
+                "description": "Obtém insights detalhados de uma conta de anúncios do Google Ads",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Google Ads"
+                ],
+                "summary": "Obter insights de conta do Google Ads",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID da conta de anúncios",
+                        "name": "account_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID do cliente OAuth",
+                        "name": "client_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Secret do cliente OAuth",
+                        "name": "client_secret",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Token de atualização OAuth",
+                        "name": "refresh_token",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.GoogleAdsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.GoogleAdsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.GoogleAdsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/google-ads/metricas": {
+            "post": {
+                "description": "Obtém métricas como CTR, CPC, conversões e investimento total do Google Ads",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Google Ads"
+                ],
+                "summary": "Obter métricas do Google Ads",
+                "parameters": [
+                    {
+                        "description": "Credenciais de acesso do Google Ads",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.GoogleAdsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.GoogleAdsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.GoogleAdsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.GoogleAdsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/google-ads/test-connection": {
+            "get": {
+                "description": "Verifica se a conexão com a API do Google está funcionando corretamente",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Google Ads"
+                ],
+                "summary": "Testar conexão básica com a API do Google",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do cliente OAuth (opcional)",
+                        "name": "client_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Secret do cliente OAuth (opcional)",
+                        "name": "client_secret",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.GoogleAdsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.GoogleAdsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/meta-ads/auth": {
+            "get": {
+                "description": "Redireciona o usuário para a página de autorização do Meta",
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "Meta Ads"
+                ],
+                "summary": "Iniciar autenticação OAuth do Meta Ads",
+                "responses": {
+                    "302": {
+                        "description": "Redirecionamento para a página de autorização do Meta",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.MetaAdsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/meta-ads/callback": {
+            "get": {
+                "description": "Recebe o código de autorização e o troca por um token de acesso",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Meta Ads"
+                ],
+                "summary": "Callback da autenticação OAuth do Meta Ads",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Código de autorização",
+                        "name": "code",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Estado para verificação CSRF",
+                        "name": "state",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.OAuthTokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.MetaAdsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/meta-ads/campanha/{campaign_id}": {
+            "get": {
+                "description": "Obtém insights detalhados de uma campanha específica do Meta Ads",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Meta Ads"
+                ],
+                "summary": "Obter insights de campanha do Meta Ads",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID da campanha",
+                        "name": "campaign_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Token de acesso do Meta Ads",
+                        "name": "token",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.MetaAdsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.MetaAdsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.MetaAdsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/meta-ads/conta/{account_id}": {
+            "get": {
+                "description": "Obtém insights detalhados de uma conta de anúncios do Meta Ads",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Meta Ads"
+                ],
+                "summary": "Obter insights de conta do Meta Ads",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID da conta de anúncios",
+                        "name": "account_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Token de acesso do Meta Ads",
+                        "name": "token",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.MetaAdsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.MetaAdsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.MetaAdsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/meta-ads/metricas": {
+            "post": {
+                "description": "Obtém métricas como CTR, CAC, investimento total e número de vendas do Meta Ads",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Meta Ads"
+                ],
+                "summary": "Obter métricas do Meta Ads",
+                "parameters": [
+                    {
+                        "description": "Token de acesso do Meta Ads",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -43,61 +612,8 @@
                             "$ref": "#/definitions/models.MetaAdsResponse"
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/models.MetaAdsResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/meta-ads/metricas": {
-            "get": {
-                "description": "Consulta métricas específicas do Meta Ads usando um token fornecido via query parameter",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "summary": "Meta Ads Métricas",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Token de acesso ao Meta Ads",
-                        "name": "token",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "ID da conta de anúncios (opcional)",
-                        "name": "account_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "ID da campanha (opcional)",
-                        "name": "campaign_id",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.MetaAdsResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/models.MetaAdsResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/models.MetaAdsResponse"
                         }
@@ -243,6 +759,151 @@
         }
     },
     "definitions": {
+        "models.ErrorInfo": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "details": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.GoogleAdsCampaignListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "Lista de campanhas",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.GoogleAdsData"
+                    }
+                },
+                "error": {
+                    "description": "Informações de erro, se houver",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ErrorInfo"
+                        }
+                    ]
+                },
+                "message": {
+                    "description": "Mensagem descritiva",
+                    "type": "string"
+                },
+                "success": {
+                    "description": "Indica se a operação foi bem-sucedida",
+                    "type": "boolean"
+                }
+            }
+        },
+        "models.GoogleAdsData": {
+            "type": "object",
+            "properties": {
+                "clicks": {
+                    "description": "Número de cliques",
+                    "type": "integer"
+                },
+                "conversoes": {
+                    "description": "Número de conversões",
+                    "type": "integer"
+                },
+                "cpc": {
+                    "description": "Custo por Clique",
+                    "type": "number"
+                },
+                "ctr": {
+                    "description": "Click-Through Rate",
+                    "type": "number"
+                },
+                "custo_conversao": {
+                    "description": "Custo por conversão",
+                    "type": "number"
+                },
+                "id": {
+                    "description": "ID da campanha ou conta",
+                    "type": "string"
+                },
+                "impressions": {
+                    "description": "Número de impressões",
+                    "type": "integer"
+                },
+                "investimento_total": {
+                    "description": "Investimento Total",
+                    "type": "number"
+                },
+                "nome": {
+                    "description": "Nome da campanha ou conta",
+                    "type": "string"
+                },
+                "taxa_conversao": {
+                    "description": "Taxa de conversão",
+                    "type": "number"
+                }
+            }
+        },
+        "models.GoogleAdsRequest": {
+            "type": "object",
+            "required": [
+                "client_id",
+                "client_secret",
+                "refresh_token"
+            ],
+            "properties": {
+                "client_id": {
+                    "description": "ID do cliente OAuth",
+                    "type": "string"
+                },
+                "client_secret": {
+                    "description": "Secret do cliente OAuth",
+                    "type": "string"
+                },
+                "manager_id": {
+                    "description": "ID da conta gerenciadora (opcional)",
+                    "type": "string"
+                },
+                "refresh_token": {
+                    "description": "Token de atualização OAuth",
+                    "type": "string"
+                }
+            }
+        },
+        "models.GoogleAdsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "Dados do Google Ads",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.GoogleAdsData"
+                        }
+                    ]
+                },
+                "error": {
+                    "description": "Informações de erro, se houver",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ErrorInfo"
+                        }
+                    ]
+                },
+                "message": {
+                    "description": "Mensagem descritiva",
+                    "type": "string"
+                },
+                "success": {
+                    "description": "Indica se a operação foi bem-sucedida",
+                    "type": "boolean"
+                }
+            }
+        },
         "models.HotmartResponse": {
             "type": "object",
             "properties": {
@@ -860,25 +1521,21 @@
                     "description": "Custo de Aquisição por Cliente",
                     "type": "number"
                 },
-                "campanha_id": {
-                    "type": "string"
-                },
-                "campanha_nome": {
-                    "type": "string"
-                },
                 "ctr": {
                     "description": "Click-Through Rate",
                     "type": "number"
                 },
-                "data_fim": {
+                "id": {
+                    "description": "ID da campanha ou conta",
                     "type": "string"
                 },
-                "data_inicio": {
-                    "type": "string"
-                },
-                "investimento": {
+                "investimento_total": {
                     "description": "Investimento Total",
                     "type": "number"
+                },
+                "nome": {
+                    "description": "Nome da campanha ou conta",
+                    "type": "string"
                 },
                 "numero_vendas": {
                     "description": "Número de Vendas",
@@ -901,12 +1558,45 @@
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/models.MetaAdsData"
+                    "description": "Dados do Meta Ads",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.MetaAdsData"
+                        }
+                    ]
+                },
+                "error": {
+                    "description": "Informações de erro, se houver",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ErrorInfo"
+                        }
+                    ]
                 },
                 "message": {
+                    "description": "Mensagem descritiva",
                     "type": "string"
                 },
-                "status": {
+                "success": {
+                    "description": "Indica se a operação foi bem-sucedida",
+                    "type": "boolean"
+                }
+            }
+        },
+        "models.OAuthTokenResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "expires_in": {
+                    "type": "integer"
+                },
+                "refresh_token": {
+                    "description": "Adicionado para suportar o refresh token do Google OAuth",
+                    "type": "string"
+                },
+                "token_type": {
                     "type": "string"
                 }
             }
@@ -916,6 +1606,10 @@
         {
             "description": "Endpoints para integração com Meta Ads",
             "name": "Meta Ads"
+        },
+        {
+            "description": "Endpoints para integração com Google Ads",
+            "name": "Google Ads"
         }
     ]
 }

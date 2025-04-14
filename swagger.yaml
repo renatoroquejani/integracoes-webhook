@@ -58,6 +58,55 @@ paths:
         '405':
           description: Método não permitido
   /api/meta-ads:
+  /api/meta-ads/consolidated:
+    post:
+      summary: Dados consolidados de todas as campanhas e contas do Meta Ads
+      description: |
+        Consulta dados consolidados do Meta Ads usando um token fornecido no corpo da requisição.
+        Retorna uma lista com métricas de todas as campanhas de todas as contas que o usuário tem acesso.
+        Se o token for inválido ou ocorrer um erro na API, retorna dados simulados como fallback.
+      tags:
+        - Meta Ads
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetaAdsRequest'
+            examples:
+              tokenExample:
+                summary: Exemplo de requisição com token
+                value:
+                  token: "EAABsbCS1iHgBO..." # Token de exemplo truncado
+      responses:
+        '200':
+          description: Lista de métricas consolidadas obtidas com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MetaAdsData'
+        '400':
+          description: Erro na requisição
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
     post:
       summary: Meta Ads API
       description: |

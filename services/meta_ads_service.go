@@ -362,3 +362,130 @@ func extractErrorInfoFromMain(err error) *models.ErrorInfo {
 
 	return errorInfo
 }
+
+// GetConsolidatedCampaignData fetches all campaigns across all accounts for the given token
+func (s *MetaAdsService) GetConsolidatedCampaignData(token string) ([]*models.MetaAdsData, error) {
+	if token == "" {
+		return nil, errors.New("token não fornecido")
+	}
+
+	session := fb.New("", "").Session(token)
+
+	// Validate token
+	_, err := session.Get("/me", fb.Params{})
+	if err != nil {
+		return nil, fmt.Errorf("token inválido ou não autorizado: %w", err)
+	}
+
+	// Fetch all ad accounts
+	params := fb.Params{
+		"fields": "account_id,name",
+		"limit":  "1000", // large limit to get many accounts
+	}
+	res, err := session.Get("/me/adaccounts", params)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao obter contas de anúncios: %w", err)
+	}
+
+	data, ok := res["data"].([]interface{})
+	if !ok || len(data) == 0 {
+		return nil, errors.New("nenhuma conta de anúncios encontrada para este token")
+	}
+
+	fmt.Printf("Encontradas %d contas de anúncios\n", len(data))
+
+	var consolidated []*models.MetaAdsData
+
+	for _, acc := range data {
+		accountMap, ok := acc.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		accountID, _ := accountMap["account_id"].(string)
+		accountName, _ := accountMap["name"].(string)
+
+		fmt.Printf("Processando conta: %s (%s)\n", accountName, accountID)
+
+		// Adicionar dados da conta aos resultados consolidados
+		accountInsights, err := s.GetAccountInsights(token, accountID)
+		if err == nil && accountInsights != nil {
+			consolidated = append(consolidated, accountInsights)
+			fmt.Printf("Adicionados insights da conta %s\n", accountID)
+		}
+
+		// Fetch campaigns for this account - usando o prefixo act_ correto
+		campaignParams := fb.Params{
+			"fields": "id,name",
+			"limit":  "1000",
+		}
+		campaignsRes, err := session.Get(fmt.Sprintf("/act_%s/campaigns", accountID), campaignParams)
+		if err != nil {
+			fmt.Printf("Erro ao obter campanhas para a conta %s: %v\n", accountID, err)
+			continue // skip this account on error
+		}
+
+		campaignsData, ok := campaignsRes["data"].([]interface{})
+		if !ok {
+			fmt.Printf("Formato de dados inválido para campanhas da conta %s\n", accountID)
+			continue
+		}
+
+		fmt.Printf("Encontradas %d campanhas para a conta %s\n", len(campaignsData), accountID)
+
+		if len(campaignsData) == 0 {
+			// Se não houver campanhas, adicionar pelo menos os dados da conta
+			if len(consolidated) == 0 { // Se ainda não adicionamos os insights da conta
+				accountData := &models.MetaAdsData{
+					ID:                accountID,
+					Nome:              accountName,
+					CTR:               0,
+					CAC:               0,
+					InvestimentoTotal: 0,
+					NumeroVendas:      0,
+				}
+				consolidated = append(consolidated, accountData)
+				fmt.Printf("Adicionados dados básicos da conta %s (sem campanhas)\n", accountID)
+			}
+		}
+
+		for _, camp := range campaignsData {
+			campMap, ok := camp.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			campaignID, _ := campMap["id"].(string)
+			campaignName, _ := campMap["name"].(string)
+
+			fmt.Printf("Processando campanha: %s (%s)\n", campaignName, campaignID)
+
+			// Fetch insights for this campaign
+			insights, err := s.GetCampaignInsights(token, campaignID)
+			if err != nil {
+				fmt.Printf("Erro ao obter insights para a campanha %s: %v\n", campaignID, err)
+				// Adicionar dados básicos da campanha mesmo sem insights
+				basicCampaignData := &models.MetaAdsData{
+					ID:                campaignID,
+					Nome:              campaignName,
+					CTR:               0,
+					CAC:               0,
+					InvestimentoTotal: 0,
+					NumeroVendas:      0,
+				}
+				consolidated = append(consolidated, basicCampaignData)
+				fmt.Printf("Adicionados dados básicos da campanha %s (sem insights)\n", campaignID)
+				continue
+			}
+
+			consolidated = append(consolidated, insights)
+			fmt.Printf("Adicionados insights da campanha %s\n", campaignID)
+		}
+	}
+
+	// Se não encontrou nenhum dado, retornar lista vazia
+	if len(consolidated) == 0 {
+		fmt.Println("Nenhum dado encontrado.")
+	}
+
+	fmt.Printf("Total de %d itens consolidados retornados\n", len(consolidated))
+	return consolidated, nil
+}
