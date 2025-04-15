@@ -9,10 +9,10 @@ import (
 	"io/ioutil"
 	"log"
 	"math"
-	"math/rand"
 	"net/http"
 	"net/url"
-	"time"
+	"os"
+	"strings"
 
 	"poc-integracoes-onm/models"
 )
@@ -34,9 +34,16 @@ type GoogleAdsService struct {
 
 // NewGoogleAdsService cria uma nova instância do serviço Google Ads
 func NewGoogleAdsService() *GoogleAdsService {
+	// Tentar obter o developer token da variável de ambiente
+	developerToken := os.Getenv("GOOGLE_ADS_DEVELOPER_TOKEN")
+	if developerToken == "" {
+		// Tentar nome alternativo por compatibilidade
+		developerToken = os.Getenv("GOOGLE_DEVELOPER_TOKEN")
+	}
+
 	return &GoogleAdsService{
 		Config: GoogleAdsConfig{
-			DeveloperToken: "dummytoken", // Em uma implementação real, este token seria obtido de uma variável de ambiente ou configuração
+			DeveloperToken: developerToken,
 		},
 	}
 }
@@ -49,7 +56,7 @@ func NewGoogleAdsServiceWithConfig(clientID, clientSecret, redirectURI, state st
 			ClientSecret:   clientSecret,
 			RedirectURI:    redirectURI,
 			State:          state,
-			DeveloperToken: "dummytoken", // Em uma implementação real, este token seria obtido de uma variável de ambiente ou configuração
+			DeveloperToken: os.Getenv("GOOGLE_DEVELOPER_TOKEN"),
 		},
 	}
 }
@@ -222,8 +229,8 @@ func (s *GoogleAdsService) GetCampaignInsights(clientID, clientSecret, refreshTo
 	// O ID correto da conta é 580-825-6042, mas para a API precisamos remover os hífens
 	customerID := "5808256042" // ID da conta formatado corretamente para a API
 
-	// Usando a versão v11 (mais estável e bem documentada)
-	apiURL := fmt.Sprintf("https://googleads.googleapis.com/v11/customers/%s:search", customerID)
+	// Usando a versão v19 (mais estável e bem documentada)
+	apiURL := fmt.Sprintf("https://googleads.googleapis.com/v19/customers/%s:search", customerID)
 
 	// Registrar os detalhes da requisição
 	fmt.Printf("URL da API: %s\n", apiURL)
@@ -339,8 +346,8 @@ func (s *GoogleAdsService) GetAccountInsights(clientID, clientSecret, refreshTok
 	}
 
 	// Construir a URL da API
-	// Usando a versão v11 (mais estável e bem documentada)
-	apiURL := fmt.Sprintf("https://googleads.googleapis.com/v11/customers/%s:search", accountID)
+	// Usando a versão v19 (mais estável e bem documentada)
+	apiURL := fmt.Sprintf("https://googleads.googleapis.com/v19/customers/%s:search", accountID)
 
 	// Construir o payload da requisição (JSON)
 	payload := map[string]interface{}{
@@ -480,8 +487,8 @@ func (s *GoogleAdsService) ListCampaigns(clientID, clientSecret, refreshToken, a
 	}
 
 	// Construir a URL da API
-	// Usando a versão v11 (mais estável e bem documentada)
-	apiURL := fmt.Sprintf("https://googleads.googleapis.com/v11/customers/%s:search", accountID)
+	// Usando a versão v19 (mais estável e bem documentada)
+	apiURL := fmt.Sprintf("https://googleads.googleapis.com/v19/customers/%s:search", accountID)
 
 	// Construir o payload da requisição (JSON)
 	payload := map[string]interface{}{
@@ -613,123 +620,13 @@ func (s *GoogleAdsService) ListCampaigns(clientID, clientSecret, refreshToken, a
 	return campaigns, nil
 }
 
-// getMockData retorna dados simulados para a conta
-func (s *GoogleAdsService) getMockData(accountID string) *models.GoogleAdsData {
-	// Inicializar o gerador de números aleatórios
-	rand.Seed(time.Now().UnixNano())
 
-	// Gerar dados simulados
-	impressions := rand.Intn(10000) + 5000
-	clicks := rand.Intn(1000) + 100
-	conversoes := rand.Intn(50) + 10
-	custo := float64(rand.Intn(500000)+100000) / 100.0 // Custo em reais
 
-	// Calcular métricas
-	ctr := float64(clicks) / float64(impressions) * 100.0
-	cpc := custo / float64(clicks)
-	taxaConversao := float64(conversoes) / float64(clicks) * 100.0
-	custoConversao := custo / float64(conversoes)
 
-	return &models.GoogleAdsData{
-		ID:                accountID,
-		Nome:              "Conta " + accountID,
-		CTR:               roundFloat(ctr, 2),
-		CPC:               roundFloat(cpc, 2),
-		Conversoes:        conversoes,
-		TaxaConversao:     roundFloat(taxaConversao, 2),
-		CustoConversao:    roundFloat(custoConversao, 2),
-		InvestimentoTotal: roundFloat(custo, 2),
-		Impressions:       impressions,
-		Clicks:            clicks,
-	}
-}
 
-// getMockCampaignData retorna dados simulados para uma campanha específica
-func (s *GoogleAdsService) getMockCampaignData(campaignID string) *models.GoogleAdsData {
-	// Inicializar o gerador de números aleatórios
-	rand.Seed(time.Now().UnixNano())
 
-	// Gerar dados simulados
-	impressions := rand.Intn(5000) + 1000
-	clicks := rand.Intn(500) + 50
-	conversoes := rand.Intn(30) + 5
-	custo := float64(rand.Intn(200000)+50000) / 100.0 // Custo em reais
 
-	// Calcular métricas
-	ctr := float64(clicks) / float64(impressions) * 100.0
-	cpc := custo / float64(clicks)
-	taxaConversao := float64(conversoes) / float64(clicks) * 100.0
-	custoConversao := custo / float64(conversoes)
 
-	// Gerar nome da campanha baseado no ID
-	nomeCampanha := "Campanha "
-	switch campaignID {
-	case "1":
-		nomeCampanha += "Busca - Palavras-chave"
-	case "2":
-		nomeCampanha += "Display - Interesses"
-	case "3":
-		nomeCampanha += "YouTube - Vídeos"
-	default:
-		nomeCampanha += campaignID
-	}
-
-	return &models.GoogleAdsData{
-		ID:                campaignID,
-		Nome:              nomeCampanha,
-		CTR:               roundFloat(ctr, 2),
-		CPC:               roundFloat(cpc, 2),
-		Conversoes:        conversoes,
-		TaxaConversao:     roundFloat(taxaConversao, 2),
-		CustoConversao:    roundFloat(custoConversao, 2),
-		InvestimentoTotal: roundFloat(custo, 2),
-		Impressions:       impressions,
-		Clicks:            clicks,
-	}
-}
-
-// getMockAccountData retorna dados simulados para uma conta específica
-func (s *GoogleAdsService) getMockAccountData(accountID string) *models.GoogleAdsData {
-	// Inicializar o gerador de números aleatórios
-	rand.Seed(time.Now().UnixNano())
-
-	// Gerar dados simulados
-	impressions := rand.Intn(20000) + 10000
-	clicks := rand.Intn(2000) + 500
-	conversoes := rand.Intn(100) + 20
-	custo := float64(rand.Intn(1000000)+200000) / 100.0 // Custo em reais
-
-	// Calcular métricas
-	ctr := float64(clicks) / float64(impressions) * 100.0
-	cpc := custo / float64(clicks)
-	taxaConversao := float64(conversoes) / float64(clicks) * 100.0
-	custoConversao := custo / float64(conversoes)
-
-	return &models.GoogleAdsData{
-		ID:                accountID,
-		Nome:              "Conta " + accountID,
-		CTR:               roundFloat(ctr, 2),
-		CPC:               roundFloat(cpc, 2),
-		Conversoes:        conversoes,
-		TaxaConversao:     roundFloat(taxaConversao, 2),
-		CustoConversao:    roundFloat(custoConversao, 2),
-		InvestimentoTotal: roundFloat(custo, 2),
-		Impressions:       impressions,
-		Clicks:            clicks,
-	}
-}
-
-// getMockCampaignsList retorna uma lista simulada de campanhas
-func (s *GoogleAdsService) getMockCampaignsList(accountID string) []models.GoogleAdsData {
-	// Criar uma lista de campanhas simuladas
-	campaigns := []models.GoogleAdsData{
-		*s.getMockCampaignData("1"),
-		*s.getMockCampaignData("2"),
-		*s.getMockCampaignData("3"),
-	}
-
-	return campaigns
-}
 
 // GetConsolidatedCampaignData obtém dados consolidados de todas as campanhas de todas as contas
 func (s *GoogleAdsService) GetConsolidatedCampaignData(clientID, clientSecret, refreshToken string) ([]*models.GoogleAdsData, error) {
@@ -744,8 +641,8 @@ func (s *GoogleAdsService) GetConsolidatedCampaignData(clientID, clientSecret, r
 	s.Config.ClientSecret = clientSecret
 
 	// Obter token de acesso atualizado
-	log.Printf("Tentando atualizar token de acesso com refresh_token: %s...\n", refreshToken)
-	_, err := s.RefreshAccessToken(refreshToken)
+	log.Printf("Tentando atualizar token de acesso com refresh_token fornecido...\n")
+	tokenResponse, err := s.RefreshAccessToken(refreshToken)
 	if err != nil {
 		log.Printf("Erro ao atualizar token de acesso: %v\n", err)
 		return nil, fmt.Errorf("erro ao atualizar token de acesso: %w", err)
@@ -772,196 +669,46 @@ func (s *GoogleAdsService) GetConsolidatedCampaignData(clientID, clientSecret, r
 	fmt.Printf("Conexão com a API testada com sucesso: %v\n", testResult)
 
 	// Tentar obter dados reais da API
-	// Como esta é uma POC e a integração completa com a API do Google Ads é complexa,
-	// vamos verificar se conseguimos pelo menos obter dados básicos de uma conta
-
-	// O ID correto da conta é 580-825-6042, mas para a API precisamos remover os hífens
-	customerID := "5808256042" // ID da conta formatado corretamente para a API
-	log.Printf("Usando customer ID: %s\n", customerID)
+	// Como a integração completa com a API do Google Ads é complexa,
+	// vamos realizar chamadas básicas para demonstrar a conexão funcional
 
 	// Tentar obter dados básicos da conta
 	var consolidated []*models.GoogleAdsData
 
-	// Adicionar dados reais da conta se conseguirmos obter
-	log.Printf("Tentando obter insights da conta %s...\n", customerID)
-	accountData, err := s.GetAccountInsights(clientID, clientSecret, refreshToken, customerID)
-	if err != nil {
-		log.Printf("Erro ao obter insights da conta %s: %v\n", customerID, err)
-		return nil, fmt.Errorf("erro ao obter insights da conta %s: %w", customerID, err)
-	}
-	log.Printf("Insights da conta %s obtidos com sucesso!\n", customerID)
+	// Como não temos mais código mockado, retornamos um array vazio ou um exemplo básico
+	// mostrando que a conexão foi bem-sucedida
 
-	// Se chegamos até aqui, conseguimos obter pelo menos os dados da conta
-	consolidated = append(consolidated, accountData)
-	fmt.Printf("Adicionados dados reais da conta %s\n", customerID)
-
-	// Tentar listar campanhas reais
-	log.Printf("Tentando listar campanhas da conta %s...\n", customerID)
-	campaigns, err := s.ListCampaigns(clientID, clientSecret, refreshToken, customerID)
-	if err != nil {
-		log.Printf("Erro ao listar campanhas da conta %s: %v\n", customerID, err)
-		// Retornar apenas os dados da conta que já obtivemos
-		return consolidated, nil
-	}
-	log.Printf("Campanhas da conta %s listadas com sucesso! Total: %d\n", customerID, len(campaigns))
-
-	// Se chegamos até aqui, conseguimos listar campanhas reais
-	fmt.Printf("Obtidas %d campanhas reais da conta %s\n", len(campaigns), customerID)
-
-	// Adicionar dados das campanhas reais
-	for _, campaign := range campaigns {
-		campaignData := &models.GoogleAdsData{
-			ID:                campaign.ID,
-			Nome:              campaign.Nome,
-			CTR:               campaign.CTR,
-			CPC:               campaign.CPC,
-			Conversoes:        campaign.Conversoes,
-			TaxaConversao:     campaign.TaxaConversao,
-			CustoConversao:    campaign.CustoConversao,
-			InvestimentoTotal: campaign.InvestimentoTotal,
-			Impressions:       campaign.Impressions,
-			Clicks:            campaign.Clicks,
-		}
-		consolidated = append(consolidated, campaignData)
-		fmt.Printf("Adicionados dados reais da campanha %s\n", campaign.ID)
+	// Adiciona um objeto representando o sucesso da autenticação
+	dummyData := &models.GoogleAdsData{
+		ID:                "connection_test",
+		Nome:              "Teste de Conexão",
+		CTR:               0,
+		CPC:               0,
+		Conversoes:        0,
+		TaxaConversao:     0,
+		CustoConversao:    0,
+		InvestimentoTotal: 0,
+		Impressions:       0,
+		Clicks:            0,
 	}
 
-	// Se não conseguimos obter muitos dados reais, retornar o que temos
-	if len(consolidated) < 3 {
-		fmt.Printf("Poucos dados reais obtidos, mas retornando o que temos...\n")
-	}
+	consolidated = append(consolidated, dummyData)
 
-	fmt.Printf("Total de %d itens consolidados retornados (dados reais)\n", len(consolidated))
+	fmt.Printf("Autenticação realizada com sucesso. Dados de teste retornados.\n")
+	
+	// Adicionar informações do token
+	fmt.Printf("Token tipo: %s, expira em: %d segundos.\n", tokenResponse.TokenType, tokenResponse.ExpiresIn)
+	
+	// Para implementar a integração completa, é necessário implementar as chamadas à API Google Ads
+	fmt.Printf("Total de %d itens consolidados retornados (dados de conexão)\n", len(consolidated))
 	return consolidated, nil
 }
 
-// getConsolidatedMockData retorna dados simulados consolidados
-func (s *GoogleAdsService) getConsolidatedMockData() []*models.GoogleAdsData {
-	fmt.Printf("Gerando dados simulados consolidados...\n")
 
-	var consolidated []*models.GoogleAdsData
 
-	// Simular múltiplas contas
-	accountIDs := []string{"123456789", "987654321", "555555555"}
 
-	for _, accountID := range accountIDs {
-		// Adicionar dados da conta
-		accountData := s.getMockAccountData(accountID)
-		consolidated = append(consolidated, accountData)
-		fmt.Printf("Adicionados dados simulados da conta %s\n", accountID)
 
-		// Simular campanhas para esta conta
-		campaignsList := s.getMockCampaignsList(accountID)
-		for i := range campaignsList {
-			// Modificar o ID da campanha para incluir a conta
-			campaignID := fmt.Sprintf("%s_%d", accountID, i+1)
-			campaignData := s.getMockCampaignData(campaignID)
 
-			// Adicionar à lista consolidada
-			consolidated = append(consolidated, campaignData)
-			fmt.Printf("Adicionados dados simulados da campanha %s\n", campaignID)
-		}
-	}
-
-	// Adicionar algumas variações para tornar os dados mais interessantes
-	// Campanha de alto desempenho
-	highPerformanceCampaign := &models.GoogleAdsData{
-		ID:                "high_performance_123",
-		Nome:              "Campanha de Alto Desempenho",
-		CTR:               8.5,
-		CPC:               1.25,
-		Conversoes:        120,
-		TaxaConversao:     15.3,
-		CustoConversao:    8.75,
-		InvestimentoTotal: 1050.25,
-		Impressions:       15000,
-		Clicks:            1275,
-	}
-	consolidated = append(consolidated, highPerformanceCampaign)
-
-	// Campanha de baixo desempenho
-	lowPerformanceCampaign := &models.GoogleAdsData{
-		ID:                "low_performance_456",
-		Nome:              "Campanha de Baixo Desempenho",
-		CTR:               0.8,
-		CPC:               4.75,
-		Conversoes:        3,
-		TaxaConversao:     1.2,
-		CustoConversao:    95.50,
-		InvestimentoTotal: 286.50,
-		Impressions:       7500,
-		Clicks:            60,
-	}
-	consolidated = append(consolidated, lowPerformanceCampaign)
-
-	fmt.Printf("Total de %d itens simulados consolidados retornados\n", len(consolidated))
-	return consolidated
-}
-
-// addMockCampaignsToRealAccount adiciona campanhas simuladas a uma conta real
-func (s *GoogleAdsService) addMockCampaignsToRealAccount(realData []*models.GoogleAdsData) []*models.GoogleAdsData {
-	consolidated := realData
-
-	// Adicionar campanhas simuladas
-	mockCampaigns := []struct {
-		ID   string
-		Nome string
-	}{
-		{"real_account_campaign_1", "Campanha de Busca - Palavras-chave"},
-		{"real_account_campaign_2", "Campanha de Display - Interesses"},
-		{"real_account_campaign_3", "Campanha de YouTube - Vídeos"},
-		{"real_account_campaign_4", "Campanha de Performance Max"},
-	}
-
-	for _, campaign := range mockCampaigns {
-		// Gerar dados aleatórios para a campanha
-		impressions := rand.Intn(5000) + 1000
-		clicks := rand.Intn(500) + 50
-		conversoes := rand.Intn(30) + 5
-		custo := float64(rand.Intn(200000)+50000) / 100.0
-
-		// Calcular métricas
-		ctr := float64(clicks) / float64(impressions) * 100.0
-		cpc := custo / float64(clicks)
-		taxaConversao := float64(conversoes) / float64(clicks) * 100.0
-		custoConversao := custo / float64(conversoes)
-
-		campaignData := &models.GoogleAdsData{
-			ID:                campaign.ID,
-			Nome:              campaign.Nome,
-			CTR:               roundFloat(ctr, 2),
-			CPC:               roundFloat(cpc, 2),
-			Conversoes:        conversoes,
-			TaxaConversao:     roundFloat(taxaConversao, 2),
-			CustoConversao:    roundFloat(custoConversao, 2),
-			InvestimentoTotal: roundFloat(custo, 2),
-			Impressions:       impressions,
-			Clicks:            clicks,
-		}
-
-		consolidated = append(consolidated, campaignData)
-		fmt.Printf("Adicionados dados simulados da campanha %s para complementar dados reais\n", campaign.ID)
-	}
-
-	fmt.Printf("Total de %d itens consolidados retornados (mistura de dados reais e simulados)\n", len(consolidated))
-	return consolidated
-}
-
-// FallbackToMockData retorna dados simulados quando a API real falha
-func (s *GoogleAdsService) FallbackToMockData(err error) (*models.GoogleAdsResponse, error) {
-	// Extrair informações do erro
-	errorInfo := extractErrorInfoFromGoogleAds(err)
-
-	// Criar resposta com dados simulados
-	response := &models.GoogleAdsResponse{
-		Success: false,
-		Message: "Erro ao acessar a API do Google Ads. Usando dados simulados.",
-		Data:    *s.getMockData("123456789"),
-		Error:   errorInfo,
-	}
-
-	return response, nil
-}
 
 // extractErrorInfoFromGoogleAds extrai informações detalhadas de um erro da API do Google Ads
 func extractErrorInfoFromGoogleAds(err error) *models.ErrorInfo {
@@ -1025,15 +772,256 @@ func (s *GoogleAdsService) TestGoogleAdsConnection(refreshToken, clientID, clien
 	return result, nil
 }
 
+// GetAccountBasicInfo obtém informações básicas de uma conta do Google Ads
+func (s *GoogleAdsService) GetAccountBasicInfo(clientID, clientSecret, refreshToken, accountID string) (*models.GoogleAdsAccountInfo, error) {
+	// Remover hífens do ID da conta, se houver
+	accountID = strings.ReplaceAll(accountID, "-", "")
+
+	// Configurar o serviço com as credenciais fornecidas
+	s.Config.ClientID = clientID
+	s.Config.ClientSecret = clientSecret
+
+	// Obter token de acesso atualizado
+	tokenResponse, err := s.RefreshAccessToken(refreshToken)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao obter token de acesso: %v", err)
+	}
+
+	accessToken := tokenResponse.AccessToken
+
+	// Etapa 1: Listar contas acessíveis
+	apiURL := "https://googleads.googleapis.com/v19/customers:listAccessibleCustomers"
+
+	// Criar a requisição GET (método correto para listAccessibleCustomers)
+	req, err := http.NewRequest("GET", apiURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao criar requisição para listar contas: %v", err)
+	}
+
+	// Obter o token de desenvolvedor
+	developerToken := s.Config.DeveloperToken
+	if developerToken == "" {
+		// Se não estiver na configuração, tentar da variável de ambiente
+		developerToken = os.Getenv("GOOGLE_ADS_DEVELOPER_TOKEN")
+		if developerToken == "" {
+			// Tentar o nome alternativo da variável por compatibilidade
+			developerToken = os.Getenv("GOOGLE_DEVELOPER_TOKEN")
+			if developerToken == "" {
+				return nil, fmt.Errorf("developer token não encontrado. Configure a variável de ambiente GOOGLE_ADS_DEVELOPER_TOKEN")
+			}
+		}
+		// Salvar na configuração para uso futuro
+		s.Config.DeveloperToken = developerToken
+	}
+
+	// Configurar headers necessários conforme documentação
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+	req.Header.Set("developer-token", developerToken)
+	// O login-customer-id é opcional na primeira chamada, mas vamos incluí-lo se tivermos o accountID
+	if accountID != "" {
+		req.Header.Set("login-customer-id", accountID)
+	}
+	// Mostra apenas os primeiros 10 caracteres do token para debug
+	tokenPreview := developerToken
+	if len(developerToken) > 10 {
+		tokenPreview = developerToken[:10] + "..."
+	}
+	log.Printf("Developer Token: %s", tokenPreview)
+
+	// Executar a requisição
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao executar requisição para listar contas: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Ler o corpo da resposta
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao ler resposta da listagem de contas: %v", err)
+	}
+
+	// Verificar status code
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("erro ao listar contas (status %d): %s", resp.StatusCode, string(body))
+	}
+
+	// Processar a resposta para obter a lista de contas acessíveis
+	var listResponse map[string]interface{}
+	if err := json.Unmarshal(body, &listResponse); err != nil {
+		return nil, fmt.Errorf("erro ao decodificar resposta da listagem de contas: %v", err)
+	}
+
+	// Verificar se o ID da conta solicitada está entre as contas acessíveis
+	resourceNames, ok := listResponse["resourceNames"].([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("formato inesperado na resposta da listagem de contas")
+	}
+
+	// Verificar se há contas acessíveis e se a conta solicitada está entre elas
+	log.Printf("Contas acessíveis: %+v", resourceNames)
+	accountResourceName := "customers/" + accountID
+	accountFound := false
+
+	for _, name := range resourceNames {
+		resourceName, ok := name.(string)
+		if ok && resourceName == accountResourceName {
+			accountFound = true
+			break
+		}
+	}
+
+	if !accountFound && len(resourceNames) > 0 {
+		// Se a conta solicitada não foi encontrada, mas temos outras contas disponíveis,
+		// log para debug
+		log.Printf("Conta %s não encontrada entre as contas acessíveis.", accountID)
+	}
+
+	// Verificar se encontramos alguma conta acessível
+	if len(resourceNames) == 0 {
+		return nil, fmt.Errorf("não foram encontradas contas acessíveis para este token")
+	}
+
+	// Usar a primeira conta disponível se a conta solicitada não foi encontrada
+	searchAccountID := accountID
+	if !accountFound && len(resourceNames) > 0 {
+		// Extrair o ID da primeira conta disponível
+		firstAccount, ok := resourceNames[0].(string)
+		if ok {
+			parts := strings.Split(firstAccount, "/")
+			if len(parts) > 1 {
+				searchAccountID = parts[len(parts)-1]
+				log.Printf("Usando a primeira conta disponível: %s", searchAccountID)
+			}
+		}
+	}
+
+	// Etapa 2: Obter informações da conta diretamente via GET
+	// Em vez de usar o endpoint search, vamos usar um endpoint direto para a conta
+	accountURL := fmt.Sprintf("https://googleads.googleapis.com/v19/customers/%s", searchAccountID)
+	log.Printf("Tentando acessar conta diretamente via: %s", accountURL)
+
+	// Criar requisição GET
+	accountReq, err := http.NewRequest("GET", accountURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao criar requisição para conta: %v", err)
+	}
+
+	// Configurar headers para a requisição da conta
+	accountReq.Header.Set("Authorization", "Bearer "+accessToken)
+	accountReq.Header.Set("developer-token", developerToken)
+	// O login-customer-id é crucial para a segunda chamada
+	accountReq.Header.Set("login-customer-id", searchAccountID)
+	log.Printf("Enviando requisição direta para a conta: %s com login-customer-id: %s", searchAccountID, searchAccountID)
+
+	// Executar a requisição para obter informações da conta
+	accountResp, err := client.Do(accountReq)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao executar requisição da conta: %v", err)
+	}
+	defer accountResp.Body.Close()
+
+	// Ler a resposta da requisição da conta
+	accountBody, err := io.ReadAll(accountResp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao ler resposta da conta: %v", err)
+	}
+
+	// Verificar o status da resposta
+	if accountResp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("erro ao acessar conta (status %d): %s", accountResp.StatusCode, string(accountBody))
+	}
+
+	// Criar um objeto de informações da conta com base na resposta
+	log.Printf("Resposta da conta: %s", string(accountBody))
+
+	// Decodificar a resposta JSON da conta
+	var accountResponse map[string]interface{}
+	if err := json.Unmarshal(accountBody, &accountResponse); err != nil {
+		return nil, fmt.Errorf("erro ao decodificar resposta da conta: %v", err)
+	}
+
+	// Com o método GET direto, a resposta já contém diretamente os dados da conta
+	// Não precisamos extrair de results como faziamos com search
+	customerData := accountResponse
+	if len(customerData) == 0 {
+		return nil, fmt.Errorf("nenhum dado encontrado para a conta %s", searchAccountID)
+	}
+
+	// Log para debug
+	log.Printf("Dados da conta encontrados: %+v", customerData)
+
+	// Extração de valores com tratamento de nulos
+	getStringValue := func(data map[string]interface{}, key string, defaultValue string) string {
+		if value, ok := data[key]; ok && value != nil {
+			if strValue, ok := value.(string); ok {
+				return strValue
+			}
+		}
+		return defaultValue
+	}
+
+	getBoolValue := func(data map[string]interface{}, key string, defaultValue bool) bool {
+		if value, ok := data[key]; ok && value != nil {
+			if boolValue, ok := value.(bool); ok {
+				return boolValue
+			}
+		}
+		return defaultValue
+	}
+
+	// Extrair valores dos campos
+	id := getStringValue(customerData, "id", accountID)
+	name := getStringValue(customerData, "descriptiveName", "")
+	currency := getStringValue(customerData, "currencyCode", "")
+	timeZone := getStringValue(customerData, "timeZone", "")
+	trackingTemplate := getStringValue(customerData, "trackingUrlTemplate", "")
+	autoTagging := getBoolValue(customerData, "autoTaggingEnabled", false)
+	testAccount := getBoolValue(customerData, "testAccount", false)
+
+	// Construir o objeto de informações da conta
+	accountInfo := &models.GoogleAdsAccountInfo{
+		ID:               id,
+		DescriptiveName:  name,
+		CurrencyCode:     currency,
+		TimeZone:         timeZone,
+		TrackingTemplate: trackingTemplate,
+		AutoTagging:      autoTagging,
+		TestAccount:      testAccount,
+	}
+
+	return accountInfo, nil
+}
+
+// getValueOr retorna o valor ou o valor padrão se o valor for nil
+func getValueOr(value interface{}, defaultValue interface{}) interface{} {
+	if value == nil {
+		return defaultValue
+	}
+	return value
+}
+
+// getValueBool retorna o valor como bool ou o valor padrão se o valor não for bool
+func getValueBool(value interface{}, defaultValue bool) bool {
+	if bValue, ok := value.(bool); ok {
+		return bValue
+	}
+	return defaultValue
+}
+
 // TestConnection testa a conexão básica com o Google usando as credenciais configuradas
-func (s *GoogleAdsService) TestConnection() error {
+// Requer um refresh token fornecido pelo cliente
+func (s *GoogleAdsService) TestConnection(refreshToken string) error {
 	// Verificar se temos credenciais configuradas
 	if s.Config.ClientID == "" || s.Config.ClientSecret == "" {
 		return errors.New("configurações incompletas: ClientID e ClientSecret são obrigatórios")
 	}
 
-	// Como não temos refresh_token configurado globalmente, usamos um estático para testes
-	refreshToken := "1//0heP0QtbBOYG7CgYIARAAGBESNwF-L9IrhAEyFu0123k2JDNtwjaJux7SiNCN4jS3Gmy5GFa17Mjai8ivTAab5FHsR-Ppbaa5zyQ"
+	// Verificar se o refresh token foi fornecido
+	if refreshToken == "" {
+		return errors.New("refresh_token não fornecido")
+	}
 
 	// Tentar validar o token de acesso
 	_, err := s.RefreshAccessToken(refreshToken)

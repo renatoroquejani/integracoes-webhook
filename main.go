@@ -123,6 +123,9 @@ func main() {
 	r.GET("/google-ads/campanha/:campaign_id", getGoogleAdsCampaignInsights)
 	r.GET("/google-ads/conta/:account_id", getGoogleAdsAccountInsights)
 	r.GET("/google-ads/campanhas/:account_id", getGoogleAdsCampaigns)
+	// Nova rota para obter informações básicas da conta
+	r.GET("/google-ads/account-info/:account_id", getGoogleAdsAccountInfo)
+	// Rota de debug removida
 
 	// Nova rota para dados consolidados de todas as campanhas de todas as contas do Google Ads
 	r.POST("/google-ads/consolidated", getGoogleAdsConsolidatedData)
@@ -599,9 +602,15 @@ func getGoogleAdsMetricas(c *gin.Context) {
 	// Obter métricas
 	data, err := googleAdsService.GetMetricas(request.ClientID, request.ClientSecret, request.RefreshToken, request.ManagerID)
 	if err != nil {
-		// Tentar usar dados simulados em caso de erro
-		mockResponse, _ := googleAdsService.FallbackToMockData(err)
-		c.JSON(http.StatusOK, mockResponse)
+		// Retornar erro ao cliente
+		c.JSON(http.StatusBadRequest, models.GoogleAdsResponse{
+			Success: false,
+			Message: "Erro ao obter métricas do Google Ads",
+			Error: &models.ErrorInfo{
+				Message: err.Error(),
+				Type:    "API Error",
+			},
+		})
 		return
 	}
 
@@ -1078,8 +1087,22 @@ func testGoogleConnection(c *gin.Context) {
 	googleAdsService.Config.ClientID = clientID
 	googleAdsService.Config.ClientSecret = clientSecret
 
+	// Obter refresh token da query ou usar um padrão para testes simples
+	refreshToken := c.Query("refresh_token")
+	if refreshToken == "" {
+		c.JSON(http.StatusBadRequest, models.GoogleAdsResponse{
+			Success: false,
+			Message: "refresh_token é obrigatório",
+			Error: &models.ErrorInfo{
+				Message: "Parâmetro refresh_token não fornecido",
+				Type:    "Parameter Error",
+			},
+		})
+		return
+	}
+
 	// Testar conexão
-	err := googleAdsService.TestConnection()
+	err := googleAdsService.TestConnection(refreshToken)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.GoogleAdsResponse{
 			Success: false,
@@ -1096,6 +1119,67 @@ func testGoogleConnection(c *gin.Context) {
 		Success: true,
 		Message: "Conexão testada com sucesso",
 	})
+}
+
+// @Summary Obter informações básicas da conta do Google Ads
+// @Description Obtém informações básicas como nome, moeda, fuso horário da conta específica do Google Ads
+// @Tags Google Ads
+// @Accept json
+// @Produce json
+// @Param account_id path string true "ID da conta de anúncios"
+// @Param client_id query string true "ID do cliente OAuth"
+// @Param client_secret query string true "Secret do cliente OAuth"
+// @Param refresh_token query string true "Token de atualização OAuth"
+// @Success 200 {object} models.GoogleAdsAccountInfoResponse
+// @Failure 400 {object} models.GoogleAdsAccountInfoResponse
+// @Failure 500 {object} models.GoogleAdsAccountInfoResponse
+// @Router /google-ads/account-info/{account_id} [get]
+func getGoogleAdsAccountInfo(c *gin.Context) {
+	// Extrair parâmetros
+	accountID := c.Param("account_id")
+	clientID := c.Query("client_id")
+	clientSecret := c.Query("client_secret")
+	refreshToken := c.Query("refresh_token")
+
+	// Validar parâmetros obrigatórios
+	if accountID == "" {
+		respondWithError(c, http.StatusBadRequest, "ID da conta não fornecido")
+		return
+	}
+
+	if clientID == "" || clientSecret == "" || refreshToken == "" {
+		respondWithError(c, http.StatusBadRequest, "Credenciais incompletas")
+		return
+	}
+
+	// Criar serviço do Google Ads
+	googleAdsService := services.NewGoogleAdsService()
+
+	// Obter informações básicas da conta
+	accountInfo, err := googleAdsService.GetAccountBasicInfo(clientID, clientSecret, refreshToken, accountID)
+	if err != nil {
+		// Extrair informações detalhadas do erro
+		errorInfo := extractErrorInfo(err)
+
+		// Retornar resposta de erro
+		response := models.GoogleAdsAccountInfoResponse{
+			Success: false,
+			Message: "Erro ao obter informações da conta",
+			Error:   errorInfo,
+		}
+
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	// Retornar resposta de sucesso
+	response := models.GoogleAdsAccountInfoResponse{
+		Success: true,
+		Message: "Informações da conta obtidas com sucesso",
+		Data:    accountInfo,
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 // getGoogleAdsConsolidatedData godoc
